@@ -1,0 +1,78 @@
+
+{% extends "owners/base.html" %}
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fw-bold">Owner Dashboard</h2>
+        <p class="text-muted">Welcome to your dashboard.</p>
+    </div>
+    <div class="col-auto d-flex align-items-center">
+        <a class="btn btn-primary" href="{% url 'office_create' owner.id %}">Add Office</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header fw-bold">Offices</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Office Name</th>
+                        <th>Office Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for office in owner.office_set.all %}
+                    <tr>
+                        <td><a href="{% url 'office_dashboard' office.id %}">{{ office.name }}</a></td>
+                        <td>{{ office.number }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center text-muted">No offices found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Reports</span>
+        <a class="btn btn-success btn-sm" href="{% url 'log_call_from_owner' owner.id %}">Add New Report</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Date Created</th>
+                        <th>Employee</th>
+                        <th>Log Report</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td><a href="{% url 'report_dashboard' report.id %}">{{ report.subject }}</a></td>
+                        <td>{{ report.created_at }}</td>
+                        <td>{{ report.employee.name }}</td>
+                        <td><a href="{% url 'report_dashboard' report.id %}" class="btn btn-info btn-sm">View Report</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No reports found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

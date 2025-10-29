@@ -1,0 +1,25 @@
+
+{% extends "owners/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fw-bold">Create</h2>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header fw-bold">New</div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <fieldset class="form-group mb-3">
+                {{ form|crispy }}
+            </fieldset>
+            <button class="btn btn-primary" type="submit">Save</button>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}

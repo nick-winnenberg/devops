@@ -1,0 +1,158 @@
+
+{% extends "owners/base.html" %}
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col text-center">
+        <h2 class="fw-bold">EEP Dev Ops</h2>
+        <p class="lead">Maintained by Nick Winnenberg</p>
+        <p class="text-muted">Today's date: {{ current_date }}</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">Today</div>
+            <div class="card-body">
+                <div class="fs-5 fw-bold">All Reports: {{ today_reports_count }}</div>
+                <div class="fs-6">Fov: {{ today_fovs }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">Last Seven Days</div>
+            <div class="card-body">
+                <div class="fs-5 fw-bold text-primary">All Reports: {{ weekly_reports_count }}</div>
+                <div class="fs-6 text-primary">Fov: {{ weekly_fovs }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">Last 30 Days</div>
+            <div class="card-body">
+                <div class="fs-5 fw-bold text-success">All Reports: {{ monthly_reports_count }}</div>
+                <div class="fs-6 text-success">Fov: {{ monthly_fovs }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">Last 90 Days</div>
+            <div class="card-body">
+                <div class="fs-5 fw-bold text-warning">All Reports: {{ yearly_reports_count }}</div>
+                <div class="fs-6 text-warning">Fov: {{ quarterly_fovs }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Owners</span>
+        <a href="{% url 'owner_create' %}" class="btn btn-primary btn-sm">Create Owner</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Owner Name</th>
+                        <th>Email</th>
+                        <th>Log Report</th>
+                        <th>Last Contacted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for owner in owners %}
+                    <tr>
+                        <td><a href="{% url 'owner_dashboard' owner.id %}">{{ owner.name }}</a></td>
+                        <td>{{ owner.email }}</td>
+                        <td><a href="{% url 'log_call_from_owner' owner.id %}" class="btn btn-success btn-sm">Log Report</a></td>
+                        <td>{{ owner.last_contacted|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'owner_delete' owner.id %}" class="btn btn-danger btn-sm">Delete</a>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No owners found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header fw-bold">Offices</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Office Name</th>
+                        <th>Office Number</th>
+                        <th>Owner</th>
+                        <th>Vibes</th>
+                        <th>Total Reports</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for office in offices %}
+                    <tr>
+                        <td><a href="{% url 'office_dashboard' office.id %}">{{ office.name }}</a></td>
+                        <td>{{ office.number }}</td>
+                        <td>{{ office.owner.name }}</td>
+                        <td>{{ office.vibe }}</td>
+                        <td>{{ office.report_set.count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No offices found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header fw-bold">Reports</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Date Created</th>
+                        <th>Owner</th>
+                        <th>Office</th>
+                        <th>Employee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td><a href="{% url 'report_dashboard' report.id %}">{{ report.subject }}</a></td>
+                        <td>{{ report.created_at }}</td>
+                        <td>{{ report.owner.name }}</td>
+                        <td>{{ report.office.name }}</td>
+                        <td>{{ report.employee.name }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No reports found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

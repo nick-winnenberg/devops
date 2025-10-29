@@ -1,0 +1,70 @@
+{% load static %}
+{% load bootstrap5 %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link href="{% static '/owners/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css">
+    <script src="{% static '/owners/js/bootstrap.min.js' %}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <title>Bluebox Dev Ops</title>
+</head>
+
+<body>
+</body>
+<br>
+<br>
+<div class="container">
+<div class="jumbotron">
+    <div class ="row">
+        <div class="col">
+            <h5>EEP Dev Ops</h5>
+        </div>
+        <div class="col">
+        </div>
+    </div>
+    </div>
+
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="{% url 'home' %}">Bluebox Dev Ops</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'activity_dashboard' %}">Activity Dashboard</a></li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                        {% else %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <footer class="bg-light py-3 mt-5 border-top">
+            <div class="container text-center">
+                <small class="text-muted">&copy; {{ now|date:'Y' }} Bluebox Dev Ops &mdash; Maintained by Nick Winnenberg</small>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+
+{% extends "owners/base.html" %}
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fw-bold">Report Details</h2>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header fw-bold">{{ report.subject }}</div>
+    <div class="card-body">
+        <ul class="list-group list-group-flush mb-3">
+            <li class="list-group-item"><strong>Date Created:</strong> {{ report.created_at }}</li>
+            <li class="list-group-item"><strong>Employee:</strong> {{ report.employee.name }}</li>
+            <li class="list-group-item"><strong>Office:</strong> {{ report.office.name }}</li>
+            <li class="list-group-item"><strong>Owner:</strong> {{ report.owner.name }}</li>
+            <li class="list-group-item"><strong>Vibe:</strong> {{ report.vibe }}</li>
+            <li class="list-group-item"><strong>Call Type:</strong> {{ report.calltype }}</li>
+        </ul>
+        <div class="mb-3">
+            <strong>Content:</strong>
+            <div class="border rounded p-2 bg-light">{{ report.content }}</div>
+        </div>
+        <a href="{% url 'office_dashboard' report.office.id %}" class="btn btn-secondary">Back to Office Dashboard</a>
+    </div>
+</div>
+
+{% endblock content %}
