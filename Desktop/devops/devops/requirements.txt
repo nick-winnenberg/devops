@@ -1,0 +1,23 @@
+# Railway-Optimized Django Requirements
+
+# Core Django
+Django>=4.2.0,<5.0
+whitenoise>=6.5.0
+
+# Database (Railway provides PostgreSQL)
+psycopg2-binary>=2.9.0
+dj-database-url>=2.1.0
+
+# Forms and UI
+django-bootstrap-v5>=1.0.11
+django-crispy-forms>=2.0
+crispy-bootstrap5>=0.7
+
+# WSGI Server
+gunicorn>=21.2.0
+
+# Optional: Redis caching (Railway addon)
+# django-redis>=5.3.0
+
+# Optional: Error tracking
+# sentry-sdk>=1.28.0
