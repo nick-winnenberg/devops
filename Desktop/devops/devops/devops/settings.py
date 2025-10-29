@@ -95,12 +95,77 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-g0*j14c7*l++z+x2z2%p()+w+#(7w$p-mj=*dnamylj#9=@q=2')
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-# Database
-if os.environ.get('DATABASE_URL'):
-    # Production database (PostgreSQL) - Parse Railway DATABASE_URL
-    import dj_database_url
+# Database configuration with multiple fallbacks
+import urllib.parse as urlparse
+
+# Force PostgreSQL for Railway deployment
+if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PORT'):
+    # We're on Railway - force PostgreSQL configuration
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        # Parse DATABASE_URL manually (more reliable than dj-database-url)
+        try:
+            url = urlparse.urlparse(database_url)
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.postgresql',
+                    'NAME': url.path[1:] if url.path else 'railway',
+                    'USER': url.username or 'postgres',
+                    'PASSWORD': url.password or '',
+                    'HOST': url.hostname or 'localhost',
+                    'PORT': url.port or 5432,
+                    'OPTIONS': {
+                        'sslmode': 'require',
+                    },
+                }
+            }
+        except Exception as e:
+            # Fallback to environment variables if URL parsing fails
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.postgresql',
+                    'NAME': os.environ.get('PGDATABASE', 'railway'),
+                    'USER': os.environ.get('PGUSER', 'postgres'),
+                    'PASSWORD': os.environ.get('PGPASSWORD', ''),
+                    'HOST': os.environ.get('PGHOST', 'localhost'),
+                    'PORT': os.environ.get('PGPORT', '5432'),
+                    'OPTIONS': {
+                        'sslmode': 'require',
+                    },
+                }
+            }
+    else:
+        # No DATABASE_URL, try individual PostgreSQL environment variables
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': os.environ.get('PGDATABASE', 'railway'),
+                'USER': os.environ.get('PGUSER', 'postgres'),
+                'PASSWORD': os.environ.get('PGPASSWORD', ''),
+                'HOST': os.environ.get('PGHOST', 'localhost'),
+                'PORT': os.environ.get('PGPORT', '5432'),
+                'OPTIONS': {
+                    'sslmode': 'require',
+                },
+            }
+        }
+elif os.environ.get('DATABASE_URL'):
+    # Production database (PostgreSQL) - Parse DATABASE_URL manually
+    database_url = os.environ.get('DATABASE_URL')
+    url = urlparse.urlparse(database_url)
+    
     DATABASES = {
-        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],  # Remove leading slash
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port or 5432,
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
     }
 elif os.environ.get('DB_NAME'):
     # Manual PostgreSQL configuration
