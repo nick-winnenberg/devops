@@ -97,7 +97,7 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(','
 
 # Database
 if os.environ.get('DATABASE_URL'):
-    # Production database (PostgreSQL)
+    # Production database (PostgreSQL) - Parse Railway DATABASE_URL
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
