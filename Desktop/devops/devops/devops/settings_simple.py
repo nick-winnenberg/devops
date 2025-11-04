@@ -14,7 +14,20 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-CHANGE-THIS-IN-PRODUC
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 # Allowed hosts
-ALLOWED_HOSTS = ['*']  # Permissive for Railway, restrict in production
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "devops-production-f6d1.up.railway.app",   # your Railway URL
+    # "your.custom.domain",                    # add if you have one
+]
+
+# Django 4.0+ requires scheme in CSRF_TRUSTED_ORIGINS
+CSRF_TRUSTED_ORIGINS = [
+    "https://devops-production-f6d1.up.railway.app",
+    # "https://your.custom.domain",
+    # Optionally, if you redeploy often and the subdomain changes:
+    "https://*.up.railway.app",               # Django 4.1+ supports wildcards
+]
 
 # Application definition
 INSTALLED_APPS = [
