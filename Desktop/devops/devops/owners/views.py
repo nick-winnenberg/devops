@@ -19,6 +19,7 @@ Security Model:
 
 # Django imports
 from django import forms
+from django.db import models
 from django.db.models import Count, Avg
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
@@ -79,7 +80,10 @@ def home(request):
         return redirect('login')
     
     owners = Owner.objects.filter(user=request.user)
-    offices = Office.objects.filter(owner__in=owners)
+    # Updated to use multi-owner relationships
+    offices = Office.objects.filter(
+        models.Q(owners__in=owners) | models.Q(primary_owner__in=owners) | models.Q(owner__in=owners)
+    ).distinct()
     reports_qs = Report.objects.filter(owner__in=owners).order_by('-created_at')
     reports = reports_qs[:5]  # Only show 5 most recent
     current_date = date.today()
@@ -188,7 +192,10 @@ def owner_delete(request, owner_id):
 
 def owner_dashboard(request, owner_id):
     owner = get_object_or_404(Owner, pk=owner_id)
-    offices = Office.objects.filter(owner=owner)
+    # Updated to use multi-owner relationships - show offices where this owner is involved
+    offices = Office.objects.filter(
+        models.Q(owners=owner) | models.Q(primary_owner=owner) | models.Q(owner=owner)
+    ).distinct()
     reports_qs = Report.objects.filter(owner=owner).order_by('-created_at')
     reports = reports_qs[:5]
 
@@ -210,8 +217,12 @@ def office_create(request, owner_id):
         form = OfficeForm(request.POST)
         if form.is_valid():
             office = form.save(commit=False)
-            office.owner = owner
+            # Set both legacy and new owner fields for compatibility
+            office.owner = owner  # Legacy field
+            office.primary_owner = owner  # New primary owner field
             office.save()
+            # Add to many-to-many relationship
+            office.owners.add(owner)
             return redirect(reverse('owner_dashboard', args=[owner_id]))
     else:
         form = OfficeForm()
@@ -219,7 +230,13 @@ def office_create(request, owner_id):
 
 def office_dashboard(request, office_id):
     office = get_object_or_404(Office, pk=office_id)
-    office_owners = Owner.objects.filter(id=office.owner.id)
+    # Get all owners of this office (multi-owner support)
+    if office.owners.exists():
+        office_owners = office.owners.all()
+    elif office.owner:  # Fallback to legacy single owner
+        office_owners = Owner.objects.filter(id=office.owner.id)
+    else:
+        office_owners = Owner.objects.none()
     employees = Employee.objects.filter(office=office)
     reports_qs = Report.objects.filter(office=office).order_by('-created_at')
     reports = reports_qs[:5]
