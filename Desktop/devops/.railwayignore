@@ -1,0 +1,3 @@
+# Ignore everything at root level except the Django project
+/*
+!/devops/

@@ -1,6 +1,27 @@
 """
-BULLETPROOF Django settings for Railway deployment
-This file GUARANTEES to work - no complex logic, just direct configuration
+PRODUCTION-READY Django Settings for Railway Deployment
+
+This configuration file is specifically designed for Railway cloud deployment
+and provides a bulletproof setup that handles both development and production
+environments automatically based on the DATABASE_URL environment variable.
+
+Key Features:
+    - Automatic PostgreSQL/SQLite database switching
+    - Railway-optimized deployment settings
+    - Bootstrap 5 and Crispy Forms integration
+    - WhiteNoise static file serving
+    - Comprehensive security configuration
+    - Environment-based configuration management
+    - Multi-tenant data isolation support
+
+Environment Variables Required:
+    - SECRET_KEY: Django secret key (set in Railway dashboard)
+    - DEBUG: Enable/disable debug mode (default: True for development)
+    - DATABASE_URL: PostgreSQL connection string (automatically set by Railway)
+
+This file replaces the default settings.py for production deployments and
+provides a simplified, reliable configuration that works consistently
+across different deployment environments.
 """
 
 import os

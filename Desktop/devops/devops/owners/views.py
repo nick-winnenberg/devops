@@ -1,23 +1,78 @@
 
+"""
+DevOps CRM - Main Views Module
+
+This module contains all the business logic and view functions for the DevOps CRM system.
+The views handle dashboard displays, CRUD operations, and report management with
+proper multi-tenant data isolation and security controls.
+
+View Categories:
+    - Dashboard Views: Main hub, owner/office/activity dashboards
+    - CRUD Operations: Create, delete operations for entities
+    - Report Management: Communication logging and tracking
+    - Analytics: Activity metrics and FOV tracking
+
+Security Model:
+    All views implement user-based data isolation by filtering objects
+    through the user's ownership chain: User → Owner → Office → Employee → Report
+"""
+
 # Django imports
 from django import forms
 from django.db.models import Count, Avg
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.urls import reverse
-# Local imports
-from .forms import *
-from .models import *
+
+# Local imports  
+from .forms import OwnerForm, OfficeForm, EmployeeForm, ReportForm
+from .models import Owner, Office, Employee, Report
 from datetime import date, timedelta
 
 
 def index(request):
-    """Simple index view for health check or root."""
+    """
+    Simple health check endpoint for deployment verification.
+    
+    Returns a basic HTTP response to confirm the application is running.
+    Used by monitoring systems and load balancers for health checks.
+    
+    Args:
+        request: HTTP request object (authentication not required)
+        
+    Returns:
+        HttpResponse: Simple welcome message
+    """
     return HttpResponse("Hello, world. Welcome!")
 
 def home(request):
     """
-    Dashboard home view. Shows summary stats and recent reports for the logged-in user's owners/offices.
+    Main dashboard view showing comprehensive activity overview.
+    
+    Displays activity statistics, recent reports, and quick access to all
+    user-owned entities. Calculates time-based metrics including FOV counts
+    and provides the central navigation hub for the CRM system.
+    
+    Features:
+        - Activity counts by time period (today, week, month, quarter, year)
+        - Field Visit (FOV) tracking and statistics
+        - Recent reports display (5 most recent)
+        - Quick access to owners and offices
+    
+    Security:
+        - Only shows data owned by the current user
+        - All querysets filtered by user's owners
+        
+    Args:
+        request: HTTP request with authenticated user
+        
+    Returns:
+        Rendered HTML response with dashboard context including:
+            - owners: User's property owners
+            - offices: User's office spaces  
+            - reports: 5 most recent reports
+            - Activity counts by time period
+            - FOV counts by time period
     """
     owners = Owner.objects.filter(user=request.user)
     offices = Office.objects.filter(owner__in=owners)
@@ -70,7 +125,19 @@ def home(request):
 
 def owner_create(request):
     """
-    Create a new Owner for the current user.
+    Handle creation of new property owners.
+    
+    GET: Display owner creation form
+    POST: Process form submission and create new owner
+    
+    Security: Automatically links new owner to current user for data isolation.
+    
+    Args:
+        request: HTTP request object with authenticated user
+        
+    Returns:
+        GET: Rendered owner creation form
+        POST: Redirect to home dashboard on success, form with errors on failure
     """
     if request.method == "POST":
         form = OwnerForm(request.POST)
@@ -243,6 +310,34 @@ def report_dashboard(request, report_id):
     })
 
 def activity_dashboard(request):
+    """
+    Comprehensive activity reporting dashboard with filtering capabilities.
+    
+    Features:
+        - Date range filtering for reports
+        - Activity matrix showing owner vs. communication type breakdown
+        - Statistical totals by owner and communication type
+        - FOV report listings
+        - Dynamic table display based on filter criteria
+    
+    The view builds a complex activity matrix that cross-tabulates owners
+    with communication types, providing comprehensive analytics for
+    business development and activity tracking.
+    
+    Query Parameters:
+        - start_date: Filter reports from this date (YYYY-MM-DD format)
+        - end_date: Filter reports until this date (YYYY-MM-DD format)
+        
+    Args:
+        request: HTTP request with optional date filtering parameters
+        
+    Returns:
+        Rendered activity dashboard with:
+            - Filtered reports queryset
+            - Owner vs. calltype activity matrix
+            - Statistical totals and grand total
+            - FOV reports for field visit tracking
+    """
     user = request.user
     reports = Report.objects.filter(author=user)
     owners = Owner.objects.filter(user=user)
