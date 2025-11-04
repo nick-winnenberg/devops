@@ -1,0 +1,166 @@
+{% extends "owners/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        {% if owner %}
+            <h2 class="fw-bold">Create New Office</h2>
+            <p class="text-muted">Adding a new office for <strong>{{ owner.name }}</strong></p>
+        {% elif office %}
+            {% if employee %}
+                <h2 class="fw-bold">Create New Employee</h2>
+                <p class="text-muted">Adding a new employee to <strong>{{ office.name }}</strong></p>
+            {% else %}
+                <h2 class="fw-bold">Log Communication</h2>
+                <p class="text-muted">Recording communication for <strong>{{ office.name }}</strong></p>
+            {% endif %}
+        {% elif employee %}
+            <h2 class="fw-bold">Log Communication</h2>
+            <p class="text-muted">Recording communication with <strong>{{ employee.name }}</strong> at {{ employee.office.name }}</p>
+        {% elif page_title %}
+            <h2 class="fw-bold">{{ page_title }}</h2>
+        {% else %}
+            <h2 class="fw-bold">Create New Item</h2>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header fw-bold">
+        {% if owner %}
+            <i class="fas fa-building me-2"></i>Office Information
+        {% elif office and employee %}
+            <i class="fas fa-user-plus me-2"></i>Employee Information
+        {% elif office or employee %}
+            <i class="fas fa-phone me-2"></i>Communication Log
+        {% else %}
+            <i class="fas fa-plus-circle me-2"></i>Form Details
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <fieldset class="form-group mb-3">
+                {{ form|crispy }}
+            </fieldset>
+            
+            <hr class="mb-4">
+            <div class="d-flex justify-content-between">
+                {% if owner %}
+                    <a href="{% url 'owner_dashboard' owner.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to {{ owner.name }}
+                    </a>
+                {% elif office %}
+                    <a href="{% url 'office_dashboard' office.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to {{ office.name }}
+                    </a>
+                {% elif employee %}
+                    <a href="{% url 'office_dashboard' employee.office.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to {{ employee.office.name }}
+                    </a>
+                {% else %}
+                    <a href="{% url 'home' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                {% endif %}
+                
+                <button class="btn btn-primary" type="submit">
+                    {% if owner %}
+                        <i class="fas fa-building me-2"></i>Create Office
+                    {% elif office and employee %}
+                        <i class="fas fa-user-plus me-2"></i>Add Employee
+                    {% elif office or employee %}
+                        <i class="fas fa-save me-2"></i>Save Communication
+                    {% else %}
+                        <i class="fas fa-save me-2"></i>Save
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Context Information Panel -->
+{% if owner or office or employee %}
+<div class="card">
+    <div class="card-header fw-bold">
+        <i class="fas fa-info-circle me-2"></i>Context Information
+    </div>
+    <div class="card-body">
+        {% if owner %}
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Owner Details</h6>
+                    <p class="mb-1"><strong>Name:</strong> {{ owner.name }}</p>
+                    {% if owner.email %}
+                        <p class="mb-1"><strong>Email:</strong> {{ owner.email }}</p>
+                    {% endif %}
+                    {% if owner.last_contacted %}
+                        <p class="mb-0"><strong>Last Contact:</strong> {{ owner.last_contacted }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Existing Offices</h6>
+                    {% if owner.offices.exists or owner.primary_offices.exists %}
+                        <ul class="list-unstyled">
+                            {% for office in owner.offices.all %}
+                                <li><i class="fas fa-building me-1 text-muted"></i>{{ office.name }}</li>
+                            {% endfor %}
+                            {% for office in owner.primary_offices.all %}
+                                <li><i class="fas fa-star me-1 text-warning"></i>{{ office.name }} (Primary)</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">This will be the first office for {{ owner.name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% elif office %}
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Office Details</h6>
+                    <p class="mb-1"><strong>Name:</strong> {{ office.name }}</p>
+                    <p class="mb-1"><strong>Address:</strong> {{ office.address }}</p>
+                    <p class="mb-0"><strong>City:</strong> {{ office.city }}, {{ office.state }} {{ office.zip_code }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Office Owners</h6>
+                    {% if office_owners %}
+                        <ul class="list-unstyled">
+                            {% for owner in office_owners %}
+                                <li>
+                                    <i class="fas fa-user me-1 text-muted"></i>{{ owner.name }}
+                                    {% if office.primary_owner == owner %}
+                                        <small class="badge bg-primary ms-1">Primary</small>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        {% elif employee %}
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Employee Details</h6>
+                    <p class="mb-1"><strong>Name:</strong> {{ employee.name }}</p>
+                    <p class="mb-1"><strong>Position:</strong> {{ employee.position }}</p>
+                    {% if employee.email %}
+                        <p class="mb-1"><strong>Email:</strong> {{ employee.email }}</p>
+                    {% endif %}
+                    <p class="mb-0"><strong>Potential:</strong> {{ employee.potential }}/10</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Office Details</h6>
+                    <p class="mb-1"><strong>Office:</strong> {{ employee.office.name }}</p>
+                    <p class="mb-1"><strong>Address:</strong> {{ employee.office.address }}</p>
+                    <p class="mb-0"><strong>Owner:</strong> {{ employee.owner.name }}</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock content %}

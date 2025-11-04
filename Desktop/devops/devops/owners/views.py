@@ -226,7 +226,7 @@ def office_create(request, owner_id):
             return redirect(reverse('owner_dashboard', args=[owner_id]))
     else:
         form = OfficeForm()
-    return render(request, "owners/create.html", {"form": form, "owner": owner})
+    return render(request, "owners/form_create.html", {"form": form, "owner": owner})
 
 def office_dashboard(request, office_id):
     office = get_object_or_404(Office, pk=office_id)
@@ -267,7 +267,7 @@ def employee_create(request, office_id):
             return redirect(reverse('office_dashboard', args=[office_id]))
     else:
         form = EmployeeForm()
-    return render(request, "owners/create.html", {"form": form, "office": office})
+    return render(request, "owners/form_create.html", {"form": form, "office": office, "employee": True})
 
 def employee_delete(request, employee_id):
     employee = get_object_or_404(Employee, pk=employee_id)
@@ -298,7 +298,7 @@ def log_call_from_employee(request, employee_id):
             return redirect(reverse('office_dashboard', args=[employee.office.id]))
     else:
         form = ReportForm()
-    return render(request, "owners/create.html", {"form": form, "employee": employee})
+    return render(request, "owners/form_create.html", {"form": form, "employee": employee})
 
 def log_call_from_office(request, office_id):
     office = get_object_or_404(Office, pk=office_id)
@@ -321,7 +321,7 @@ def log_call_from_office(request, office_id):
             return redirect(reverse('office_dashboard', args=[office_id]))
     else:
         form = ReportForm()
-    return render(request, "owners/create.html", {"form": form, "office": office})
+    return render(request, "owners/form_create.html", {"form": form, "office": office})
 
 def log_call_from_owner(request, owner_id):
     """
@@ -381,7 +381,7 @@ def log_call_from_owner(request, owner_id):
         "form_type": "owner_report"
     }
     
-    return render(request, "owners/create.html", context)
+    return render(request, "owners/form_create.html", context)
 
 def report_dashboard(request, report_id):
     report = get_object_or_404(Report, pk=report_id)
