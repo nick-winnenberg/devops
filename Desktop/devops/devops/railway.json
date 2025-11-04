@@ -1,6 +1,6 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "deploy": {
-    "startCommand": "python -c \"import os; print('PORT:', os.environ.get('PORT')); print('DATABASE_URL exists:', bool(os.environ.get('DATABASE_URL')))\" && python manage.py check && python manage.py migrate && python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:$PORT devops.wsgi:application"
+    "startCommand": "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:$PORT devops.wsgi:application"
   }
 }
