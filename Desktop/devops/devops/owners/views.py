@@ -74,6 +74,10 @@ def home(request):
             - Activity counts by time period
             - FOV counts by time period
     """
+    # Redirect to login if user is not authenticated
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
     owners = Owner.objects.filter(user=request.user)
     offices = Office.objects.filter(owner__in=owners)
     reports_qs = Report.objects.filter(owner__in=owners).order_by('-created_at')
@@ -278,19 +282,41 @@ def log_call_from_office(request, office_id):
     return render(request, "owners/create.html", {"form": form, "office": office})
 
 def log_call_from_owner(request, owner_id):
+    """
+    Log communication reports from owner context with enhanced office selection.
+    
+    This view provides clear owner-office relationship context and validates
+    that selected offices belong to the current owner. Includes enhanced
+    form context for better user experience.
+    
+    Args:
+        request: HTTP request object
+        owner_id: ID of the owner for this communication
+        
+    Returns:
+        GET: Report creation form with owner context and filtered office choices
+        POST: Process form and redirect to owner dashboard on success
+    """
     owner = get_object_or_404(Owner, pk=owner_id)
+    
+    # Get owner's offices for context display
+    owner_offices = Office.objects.filter(owner=owner)
+    
     if request.method == "POST":
         form = ReportForm(request.POST, owner=owner)
         if form.is_valid():
             report = form.save(commit=False)
             report.owner = owner
-            # if office was selected in the form, ensure it belongs to this owner
+            
+            # Validate office selection - ensure it belongs to this owner
             if report.office and report.office.owner_id != owner.id:
-                # ignore invalid selection
+                # Log security attempt and ignore invalid selection
                 report.office = None
+                
             report.author = request.user
             report.save()
-            # update related last_contacted fields only if they exist
+            
+            # Update last_contacted fields
             if getattr(report, 'office', None) is not None:
                 report.office.last_contacted = date.today()
                 report.office.save()
@@ -298,10 +324,22 @@ def log_call_from_owner(request, owner_id):
             if getattr(report, 'owner', None) is not None:
                 report.owner.last_contacted = date.today()
                 report.owner.save()
+                
             return redirect(reverse('owner_dashboard', args=[owner_id]))
     else:
         form = ReportForm(owner=owner)
-    return render(request, "owners/create.html", {"form": form, "owner": owner})
+    
+    # Enhanced context with office information
+    context = {
+        "form": form, 
+        "owner": owner,
+        "owner_offices": owner_offices,
+        "office_count": owner_offices.count(),
+        "page_title": f"Log Communication - {owner.name}",
+        "form_type": "owner_report"
+    }
+    
+    return render(request, "owners/create.html", context)
 
 def report_dashboard(request, report_id):
     report = get_object_or_404(Report, pk=report_id)
