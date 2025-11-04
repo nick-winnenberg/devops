@@ -69,10 +69,10 @@ class OwnerForm(forms.ModelForm):
             # Update help text based on available offices
             office_count = user_offices.count()
             if office_count == 0:
-                self.fields['offices'].help_text = "No existing offices found. Create offices first if you want to associate them with this owner."
+                self.fields['offices'].help_text = f"No existing offices found for user '{user.username}'. Create offices first if you want to associate them with this owner."
                 self.fields['set_as_primary'].widget = forms.HiddenInput()  # Hide if no offices
             else:
-                self.fields['offices'].help_text = f"Select from your {office_count} existing office(s) to associate with this owner."
+                self.fields['offices'].help_text = f"Select from your {office_count} existing office(s) to associate with this owner. (User: {user.username})"
         else:
             # No user context - hide office fields
             self.fields['offices'].widget = forms.HiddenInput()

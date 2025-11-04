@@ -149,7 +149,7 @@ def owner_create(request):
         POST: Redirect to home dashboard on success, form with errors on failure
     """
     if request.method == "POST":
-        form = OwnerForm(request.POST, user=request.user)
+        form = OwnerForm(data=request.POST, user=request.user)
         if form.is_valid():
             # Create the owner instance
             owner = form.save(commit=False)
