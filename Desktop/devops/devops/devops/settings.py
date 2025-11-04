@@ -96,19 +96,15 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-g0*j14c7*l++z+x2z2%p()+w+#(7w$p-mj=*dnamylj#9=@q=2')
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-# Database configuration with connection pooling and retry logic
+# Database configuration - SIMPLE AND BULLETPROOF
 import urllib.parse as urlparse
 
-# Debug: Print environment variables to Railway logs
-print("=== DATABASE DEBUG ===")
-print(f"PORT: {os.environ.get('PORT')}")
-print(f"RAILWAY_ENVIRONMENT: {os.environ.get('RAILWAY_ENVIRONMENT')}")
-print(f"DATABASE_URL: {os.environ.get('DATABASE_URL')}")
-print(f"PGHOST: {os.environ.get('PGHOST')}")
-print(f"PGDATABASE: {os.environ.get('PGDATABASE')}")
-print("=== END DEBUG ===")
+print("=== DATABASE CONFIGURATION START ===")
+print(f"BASE_DIR: {BASE_DIR}")
+print(f"PORT env var: {os.environ.get('PORT', 'Not set')}")  
+print(f"DATABASE_URL env var: {os.environ.get('DATABASE_URL', 'Not set')}")
 
-# Always set a default database configuration first
+# ALWAYS start with a working SQLite configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -116,63 +112,46 @@ DATABASES = {
     }
 }
 
-# Then override with PostgreSQL if we have the right environment
-database_url = os.environ.get('DATABASE_URL')
-if database_url:
-    print(f"Using DATABASE_URL: {database_url}")
-    try:
-        url = urlparse.urlparse(database_url)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': url.path[1:] if url.path and len(url.path) > 1 else 'railway',
-                'USER': url.username or 'postgres',
-                'PASSWORD': url.password or '',
-                'HOST': url.hostname or 'localhost',
-                'PORT': url.port or 5432,
-                'OPTIONS': {
-                    'sslmode': 'require',
-                    'connect_timeout': 10,
-                    'options': '-c default_transaction_isolation=read_committed'
-                },
-                'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
-                'CONN_HEALTH_CHECKS': True,  # Enable connection health checks
-                'ATOMIC_REQUESTS': True,  # Wrap each request in a transaction
-            }
-        }
-        print(f"PostgreSQL config: HOST={url.hostname}, DB={url.path[1:] if url.path else 'railway'}")
-    except Exception as e:
-        print(f"Error parsing DATABASE_URL: {e}")
-        # Keep SQLite as fallback
-elif os.environ.get('PGHOST') and os.environ.get('PGDATABASE'):
-    print("Using PostgreSQL environment variables")
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('PGDATABASE'),
-            'USER': os.environ.get('PGUSER', 'postgres'),
-            'PASSWORD': os.environ.get('PGPASSWORD', ''),
-            'HOST': os.environ.get('PGHOST'),
-            'PORT': os.environ.get('PGPORT', '5432'),
-            'OPTIONS': {
-                'sslmode': 'require',
-                'connect_timeout': 10,
-                'options': '-c default_transaction_isolation=read_committed'
-            },
-            'CONN_MAX_AGE': 600,
-            'CONN_HEALTH_CHECKS': True,
-            'ATOMIC_REQUESTS': True,
-        }
-    }
-    print(f"PostgreSQL config: HOST={os.environ.get('PGHOST')}, DB={os.environ.get('PGDATABASE')}")
-elif os.environ.get('PORT'):  # We're on Railway but no database URL
-    print("On Railway but no database configured - using SQLite temporarily")
-    # Keep SQLite for now, but this indicates a setup issue
-else:
-    print("Using SQLite for local development")
+print(f"Default SQLite config set: {DATABASES}")
 
-print(f"Final DATABASE ENGINE: {DATABASES['default']['ENGINE']}")
-print(f"Final DATABASE NAME: {DATABASES['default']['NAME']}")
+# Try to override with PostgreSQL if we have DATABASE_URL
+database_url = os.environ.get('DATABASE_URL')
+if database_url and 'postgresql' in database_url:
+    print(f"Found PostgreSQL DATABASE_URL, attempting to parse...")
+    try:
+        import urllib.parse
+        url = urllib.parse.urlparse(database_url)
+        
+        if url.hostname and url.username:
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.postgresql',
+                    'NAME': url.path[1:] if url.path and len(url.path) > 1 else 'railway',
+                    'USER': url.username,
+                    'PASSWORD': url.password or '',
+                    'HOST': url.hostname,
+                    'PORT': url.port or 5432,
+                    'OPTIONS': {
+                        'sslmode': 'require',
+                    },
+                    'CONN_MAX_AGE': 600,
+                    'CONN_HEALTH_CHECKS': True,
+                }
+            }
+            print(f"✅ PostgreSQL configured successfully")
+            print(f"   HOST: {url.hostname}")
+            print(f"   DB: {url.path[1:] if url.path else 'railway'}")
+        else:
+            print(f"❌ PostgreSQL URL incomplete, keeping SQLite")
+    except Exception as e:
+        print(f"❌ Error parsing PostgreSQL URL: {e}")
+        print("Keeping SQLite configuration")
+
+# Final validation
+print(f"🎯 FINAL ENGINE: {DATABASES['default']['ENGINE']}")
+print(f"🎯 FINAL NAME: {DATABASES['default']['NAME']}")  
+print(f"🎯 DATABASES structure: {list(DATABASES.keys())}")
+print("=== DATABASE CONFIGURATION COMPLETE ===")
 
 # Logging configuration for Railway
 LOGGING = {

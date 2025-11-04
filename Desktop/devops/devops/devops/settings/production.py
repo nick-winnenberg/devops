@@ -13,17 +13,49 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # Hosts
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
-# Database - PostgreSQL for production
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+# Database - PostgreSQL for production with Railway support
+import urllib.parse as urlparse
+
+# Railway provides DATABASE_URL, handle it properly
+if os.environ.get('DATABASE_URL'):
+    database_url = os.environ.get('DATABASE_URL')
+    url = urlparse.urlparse(database_url)
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:] if url.path and len(url.path) > 1 else 'railway',
+            'USER': url.username or 'postgres',
+            'PASSWORD': url.password or '',
+            'HOST': url.hostname or 'localhost',
+            'PORT': url.port or 5432,
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+            'CONN_MAX_AGE': 600,
+            'CONN_HEALTH_CHECKS': True,
+        }
     }
-}
+elif os.environ.get('DB_NAME'):
+    # Manual PostgreSQL configuration
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
+else:
+    # Fallback to SQLite if no database environment variables
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
