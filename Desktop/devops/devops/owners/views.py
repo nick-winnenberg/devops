@@ -183,6 +183,85 @@ def owner_create(request):
     
     return render(request, "owners/create.html", {"form": form})
 
+def owner_create_from_office(request, office_id):
+    """
+    Create a new owner from office context and associate them with the office.
+    
+    This view allows adding new owners to an existing office, which is useful
+    for scenarios like:
+    - Adding new partners or co-owners
+    - Bringing in management companies
+    - Recording ownership changes or transfers
+    
+    The new owner will automatically be added to the office's owners list,
+    and optionally can be set as the primary owner.
+    
+    GET: Display owner creation form with office context
+    POST: Process form submission, create owner, and associate with office
+    
+    Security: Only allows users to add owners to offices they own/control.
+    
+    Args:
+        request: HTTP request object with authenticated user
+        office_id: ID of the office to associate the new owner with
+        
+    Returns:
+        GET: Rendered owner creation form with office context
+        POST: Redirect to office dashboard on success, form with errors on failure
+    """
+    office = get_object_or_404(Office, pk=office_id)
+    
+    # Security check: ensure user has access to this office
+    user_owners = Owner.objects.filter(user=request.user)
+    office_accessible = Office.objects.filter(
+        models.Q(id=office_id) & (
+            models.Q(owners__in=user_owners) | 
+            models.Q(primary_owner__in=user_owners) | 
+            models.Q(owner__in=user_owners)
+        )
+    ).exists()
+    
+    if not office_accessible:
+        return redirect(reverse('home'))  # or show 403 error
+    
+    if request.method == "POST":
+        form = OwnerForm(data=request.POST, user=request.user)
+        if form.is_valid():
+            # Create the owner instance
+            owner = form.save(commit=False)
+            owner.user = request.user
+            owner.save()
+            
+            # Automatically associate with the office
+            office.owners.add(owner)
+            
+            # Check if user wants to set as primary owner
+            set_as_primary = request.POST.get('set_as_primary_for_office', False)
+            if set_as_primary and not office.primary_owner:
+                office.primary_owner = owner
+                office.save()
+            
+            return redirect(reverse('office_dashboard', args=[office_id]))
+    else:
+        form = OwnerForm(user=request.user)
+    
+    # Get existing owners for context
+    existing_owners = []
+    if office.owners.exists():
+        existing_owners = office.owners.all()
+    elif office.owner:  # Fallback to legacy owner
+        existing_owners = [office.owner]
+    
+    context = {
+        "form": form,
+        "office": office,
+        "existing_owners": existing_owners,
+        "page_title": f"Add Owner to {office.name}",
+        "form_type": "owner_from_office"
+    }
+    
+    return render(request, "owners/owner_from_office_create.html", context)
+
 def owner_delete(request, owner_id):
     owner = get_object_or_404(Owner, pk=owner_id)
     if request.method == "POST":

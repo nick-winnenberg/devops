@@ -11,11 +11,42 @@
 <div class="card mb-4">
     <div class="card-header fw-bold">Office Details</div>
     <div class="card-body">
-        <ul class="list-group list-group-flush mb-0">
-            <li class="list-group-item"><strong>Office Number:</strong> {{ office.number }}</li>
-            <li class="list-group-item"><strong>Owner:</strong> {{ office.owner.name }}</li>
-            <li class="list-group-item"><strong>Average Vibes:</strong> {{ average_vibe }}</li>
-        </ul>
+        <div class="row">
+            <div class="col-md-8">
+                <ul class="list-group list-group-flush mb-0">
+                    <li class="list-group-item"><strong>Office Number:</strong> {{ office.number }}</li>
+                    <li class="list-group-item"><strong>Address:</strong> {{ office.address }}, {{ office.city }}, {{ office.state }} {{ office.zip_code }}</li>
+                    <li class="list-group-item"><strong>Average Vibes:</strong> {{ average_vibe|default:"Not available" }}</li>
+                    <li class="list-group-item"><strong>Field Visits (FOVs):</strong> {{ fovs }}</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">Owners</h6>
+                {% if office_owners %}
+                    <ul class="list-unstyled">
+                        {% for owner in office_owners %}
+                            <li class="mb-2">
+                                <i class="fas fa-user me-1 text-muted"></i>
+                                <a href="{% url 'owner_dashboard' owner.id %}" class="text-decoration-none">{{ owner.name }}</a>
+                                {% if office.primary_owner == owner %}
+                                    <small class="badge bg-primary ms-1">Primary</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small">No owners associated</p>
+                {% endif %}
+                <div class="d-grid gap-2">
+                    <a href="{% url 'owner_create_from_office' office.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-user-plus me-1"></i>Add Owner
+                    </a>
+                    <a href="{% url 'log_call_from_office' office.id %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-phone me-1"></i>Log Call
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

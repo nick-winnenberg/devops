@@ -10,6 +10,7 @@ urlpatterns = [
     path("owner/<int:owner_id>/delete/", views.owner_delete, name="owner_delete"),
     path("office/<int:owner_id>/create/", views.office_create, name="office_create"),
     path("office/<int:office_id>/dashboard/", views.office_dashboard, name="office_dashboard"),
+    path("office/<int:office_id>/create_owner/", views.owner_create_from_office, name="owner_create_from_office"),
     path("office/<int:office_id>/create_employee/", views.employee_create, name="employee_create"),
     path("delete_employee/<int:employee_id>/", views.employee_delete, name="employee_delete"),
     path("log_call_from_employee/<int:employee_id>/", views.log_call_from_employee, name="log_call_from_employee"),
