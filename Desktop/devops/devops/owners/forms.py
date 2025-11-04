@@ -14,6 +14,7 @@ Forms included:
 """
 
 from django import forms
+from django.db import models
 from .models import Owner, Office, Employee, Report
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, get_list_or_404, redirect
@@ -21,19 +22,61 @@ from django.shortcuts import render, get_object_or_404, get_list_or_404, redirec
 
 class OwnerForm(forms.ModelForm):
     """
-    Form for creating and editing Owner instances.
+    Enhanced form for creating and editing Owner instances with office association.
     
-    Includes basic owner information like name and email.
-    The user field is automatically set in the view to ensure
-    proper data ownership and multi-tenant isolation.
+    Includes basic owner information and optional office selection to enable
+    tying new owners to existing offices for multi-owner scenarios.
     
     Fields:
         - name: Owner/company name (required)
         - email: Contact email address (optional)
+        - offices: Multiple office selection (optional)
+        - set_as_primary: Whether to set as primary owner for selected offices
     """
+    
+    # Multi-select field for associating owner with existing offices
+    offices = forms.ModelMultipleChoiceField(
+        queryset=Office.objects.none(),  # Will be set in __init__
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        help_text="Select existing offices that this owner should be associated with"
+    )
+    
+    # Option to set as primary owner for selected offices
+    set_as_primary = forms.BooleanField(
+        required=False,
+        initial=False,
+        help_text="Check to set this owner as the primary contact for selected offices"
+    )
+    
     class Meta:
         model = Owner
-        fields = ['name', 'email',]
+        fields = ['name', 'email']
+    
+    def __init__(self, *args, **kwargs):
+        # Accept user context to filter offices by the current user
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if user:
+            # Show only offices owned by the current user (through primary_owner or legacy owner)
+            user_offices = Office.objects.filter(
+                models.Q(primary_owner__user=user) | 
+                models.Q(owner__user=user)
+            ).distinct()
+            self.fields['offices'].queryset = user_offices
+            
+            # Update help text based on available offices
+            office_count = user_offices.count()
+            if office_count == 0:
+                self.fields['offices'].help_text = "No existing offices found. Create offices first if you want to associate them with this owner."
+                self.fields['set_as_primary'].widget = forms.HiddenInput()  # Hide if no offices
+            else:
+                self.fields['offices'].help_text = f"Select from your {office_count} existing office(s) to associate with this owner."
+        else:
+            # No user context - hide office fields
+            self.fields['offices'].widget = forms.HiddenInput()
+            self.fields['set_as_primary'].widget = forms.HiddenInput()
 
 class OfficeForm(forms.ModelForm):
     """

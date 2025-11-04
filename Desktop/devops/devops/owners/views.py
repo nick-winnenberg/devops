@@ -129,29 +129,54 @@ def home(request):
 
 def owner_create(request):
     """
-    Handle creation of new property owners.
+    Enhanced owner creation with office association support.
     
-    GET: Display owner creation form
-    POST: Process form submission and create new owner
+    Allows creating new owners and optionally associating them with existing offices.
+    Supports the new multi-owner functionality by enabling owners to be tied to
+    multiple offices and optionally set as primary contact.
+    
+    GET: Display owner creation form with office selection options
+    POST: Process form submission, create owner, and handle office associations
     
     Security: Automatically links new owner to current user for data isolation.
+    Only shows offices owned by the current user for association.
     
     Args:
         request: HTTP request object with authenticated user
         
     Returns:
-        GET: Rendered owner creation form
+        GET: Rendered owner creation form with available offices
         POST: Redirect to home dashboard on success, form with errors on failure
     """
     if request.method == "POST":
-        form = OwnerForm(request.POST)
+        form = OwnerForm(request.POST, user=request.user)
         if form.is_valid():
+            # Create the owner instance
             owner = form.save(commit=False)
             owner.user = request.user
             owner.save()
+            
+            # Handle office associations
+            selected_offices = form.cleaned_data.get('offices')
+            set_as_primary = form.cleaned_data.get('set_as_primary', False)
+            
+            if selected_offices:
+                # Add owner to selected offices
+                for office in selected_offices:
+                    office.owners.add(owner)
+                    
+                    # Set as primary owner if requested and office doesn't have primary owner
+                    if set_as_primary:
+                        if not office.primary_owner:
+                            office.primary_owner = owner
+                            office.save()
+                        # If office already has primary owner, we could add logic here
+                        # to ask user if they want to replace or just add as additional owner
+            
             return redirect(reverse('home'))
     else:
-        form = OwnerForm()
+        form = OwnerForm(user=request.user)
+    
     return render(request, "owners/create.html", {"form": form})
 
 def owner_delete(request, owner_id):
