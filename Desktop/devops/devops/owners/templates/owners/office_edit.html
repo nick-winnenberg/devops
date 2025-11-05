@@ -1,0 +1,103 @@
+{% extends "owners/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fw-bold">Edit Office: {{ office.name }}</h2>
+        <p class="text-muted">Update office information and details</p>
+    </div>
+</div>
+
+<!-- Current Office Information -->
+<div class="card mb-4">
+    <div class="card-header fw-bold">
+        <i class="fas fa-info-circle me-2"></i>Current Information
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold">Office Details</h6>
+                <p class="mb-1"><strong>Current Name:</strong> {{ office.name }}</p>
+                <p class="mb-1"><strong>Number:</strong> #{{ office.number }}</p>
+                <p class="mb-1"><strong>Address:</strong> {{ office.address }}</p>
+                <p class="mb-0"><strong>Location:</strong> {{ office.city }}, {{ office.state }} {{ office.zip_code }}</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">Associated Owners</h6>
+                {% if office_owners %}
+                    <ul class="list-unstyled">
+                        {% for owner in office_owners %}
+                            <li class="mb-1">
+                                <i class="fas fa-user me-1 text-muted"></i>
+                                <a href="{% url 'owner_dashboard' owner.id %}" class="text-decoration-none">{{ owner.name }}</a>
+                                {% if office.primary_owner == owner %}
+                                    <small class="badge bg-primary ms-1">Primary</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No owners associated</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Form -->
+<div class="card mb-4">
+    <div class="card-header fw-bold">
+        <i class="fas fa-edit me-2"></i>Edit Office Information
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <fieldset class="form-group mb-3">
+                {{ form|crispy }}
+            </fieldset>
+            
+            <!-- Form Actions -->
+            <hr class="mb-4">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'office_dashboard' office.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Cancel
+                </a>
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics and Impact -->
+<div class="card">
+    <div class="card-header fw-bold">
+        <i class="fas fa-chart-bar me-2"></i>Office Statistics
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h6 class="fw-bold">Employees</h6>
+                <p class="mb-0">{{ office.employee_set.count }} employee{{ office.employee_set.count|pluralize }}</p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">Reports</h6>
+                <p class="mb-0">{{ office.report_set.count }} report{{ office.report_set.count|pluralize }}</p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">Last Contact</h6>
+                <p class="mb-0">
+                    {% if office.last_contacted %}
+                        {{ office.last_contacted }}
+                    {% else %}
+                        <span class="text-muted">Never contacted</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

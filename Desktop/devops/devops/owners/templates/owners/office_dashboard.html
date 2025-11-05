@@ -6,6 +6,11 @@
     <div class="col">
         <h2 class="fw-bold">{{ office.name }} Dashboard</h2>
     </div>
+    <div class="col-auto d-flex align-items-center">
+        <a class="btn btn-outline-secondary" href="{% url 'office_edit' office.id %}">
+            <i class="fas fa-edit me-1"></i>Edit Office
+        </a>
+    </div>
 </div>
 
 <div class="card mb-4">
@@ -64,8 +69,7 @@
                         <th>Position</th>
                         <th>Email</th>
                         <th>Potential</th>
-                        <th>Call</th>
-                        <th>Delete</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -75,12 +79,23 @@
                         <td>{{ employee.position }}</td>
                         <td>{{ employee.email }}</td>
                         <td>{{ employee.potential }}</td>
-                        <td><a href="{% url 'log_call_from_employee' employee.id %}" class="btn btn-success btn-sm">Log Call</a></td>
-                        <td><a href="{% url 'employee_delete' employee.id %}" class="btn btn-danger btn-sm">Delete</a></td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'log_call_from_employee' employee.id %}" class="btn btn-success" title="Log Call">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                                <a href="{% url 'employee_edit' employee.id %}" class="btn btn-outline-primary" title="Edit Employee">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'employee_delete' employee.id %}" class="btn btn-danger" title="Delete Employee">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No employees found.</td>
+                        <td colspan="5" class="text-center text-muted">No employees found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

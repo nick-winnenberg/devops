@@ -262,6 +262,73 @@ def owner_create_from_office(request, office_id):
     
     return render(request, "owners/owner_from_office_create.html", context)
 
+def owner_edit(request, owner_id):
+    """
+    Edit an existing owner's information.
+    
+    Allows updating owner details while maintaining office associations.
+    Only owners belonging to the current user can be edited.
+    
+    Args:
+        request: HTTP request object with authenticated user
+        owner_id: ID of the owner to edit
+        
+    Returns:
+        GET: Rendered owner edit form
+        POST: Redirect to owner dashboard on success, form with errors on failure
+    """
+    owner = get_object_or_404(Owner, pk=owner_id)
+    
+    # Security check: ensure user owns this owner
+    if owner.user != request.user:
+        return redirect(reverse('home'))
+    
+    if request.method == "POST":
+        form = OwnerForm(data=request.POST, instance=owner, user=request.user)
+        if form.is_valid():
+            updated_owner = form.save()
+            
+            # Handle office associations if they changed
+            selected_offices = form.cleaned_data.get('offices', [])
+            set_as_primary = form.cleaned_data.get('set_as_primary', False)
+            
+            # Update office associations
+            if selected_offices:
+                # Clear existing associations and add new ones
+                for office in updated_owner.offices.all():
+                    if office not in selected_offices:
+                        office.owners.remove(updated_owner)
+                        # If this owner was primary, clear primary status
+                        if office.primary_owner == updated_owner:
+                            office.primary_owner = None
+                            office.save()
+                
+                # Add new associations
+                for office in selected_offices:
+                    office.owners.add(updated_owner)
+                    
+                    # Set as primary if requested and no primary exists
+                    if set_as_primary and not office.primary_owner:
+                        office.primary_owner = updated_owner
+                        office.save()
+            
+            return redirect(reverse('owner_dashboard', args=[owner_id]))
+    else:
+        # Pre-populate form with current office associations
+        form = OwnerForm(instance=owner, user=request.user)
+        # Set initial values for office associations
+        if owner.offices.exists():
+            form.fields['offices'].initial = owner.offices.all()
+        # Check if owner is primary for any office
+        if owner.primary_offices.exists():
+            form.fields['set_as_primary'].initial = True
+    
+    return render(request, "owners/owner_edit.html", {
+        "form": form, 
+        "owner": owner,
+        "page_title": f"Edit {owner.name}"
+    })
+
 def owner_delete(request, owner_id):
     owner = get_object_or_404(Owner, pk=owner_id)
     if request.method == "POST":
@@ -307,6 +374,59 @@ def office_create(request, owner_id):
         form = OfficeForm()
     return render(request, "owners/form_create.html", {"form": form, "owner": owner})
 
+def office_edit(request, office_id):
+    """
+    Edit an existing office's information.
+    
+    Allows updating office details while maintaining owner associations.
+    Only offices owned by the current user can be edited.
+    
+    Args:
+        request: HTTP request object with authenticated user
+        office_id: ID of the office to edit
+        
+    Returns:
+        GET: Rendered office edit form
+        POST: Redirect to office dashboard on success, form with errors on failure
+    """
+    office = get_object_or_404(Office, pk=office_id)
+    
+    # Security check: ensure user has access to this office
+    user_owners = Owner.objects.filter(user=request.user)
+    office_accessible = Office.objects.filter(
+        models.Q(id=office_id) & (
+            models.Q(owners__in=user_owners) | 
+            models.Q(primary_owner__in=user_owners) | 
+            models.Q(owner__in=user_owners)
+        )
+    ).exists()
+    
+    if not office_accessible:
+        return redirect(reverse('home'))
+    
+    if request.method == "POST":
+        form = OfficeForm(data=request.POST, instance=office)
+        if form.is_valid():
+            updated_office = form.save()
+            return redirect(reverse('office_dashboard', args=[office_id]))
+    else:
+        form = OfficeForm(instance=office)
+    
+    # Get current owners for context
+    if office.owners.exists():
+        office_owners = office.owners.all()
+    elif office.owner:
+        office_owners = [office.owner]
+    else:
+        office_owners = []
+    
+    return render(request, "owners/office_edit.html", {
+        "form": form,
+        "office": office,
+        "office_owners": office_owners,
+        "page_title": f"Edit {office.name}"
+    })
+
 def office_dashboard(request, office_id):
     office = get_object_or_404(Office, pk=office_id)
     # Get all owners of this office (multi-owner support)
@@ -347,6 +467,51 @@ def employee_create(request, office_id):
     else:
         form = EmployeeForm()
     return render(request, "owners/form_create.html", {"form": form, "office": office, "employee": True})
+
+def employee_edit(request, employee_id):
+    """
+    Edit an existing employee's information.
+    
+    Allows updating employee details while maintaining office associations.
+    Only employees in offices owned by the current user can be edited.
+    
+    Args:
+        request: HTTP request object with authenticated user
+        employee_id: ID of the employee to edit
+        
+    Returns:
+        GET: Rendered employee edit form
+        POST: Redirect to office dashboard on success, form with errors on failure
+    """
+    employee = get_object_or_404(Employee, pk=employee_id)
+    
+    # Security check: ensure user has access to this employee's office
+    user_owners = Owner.objects.filter(user=request.user)
+    office_accessible = Office.objects.filter(
+        models.Q(id=employee.office.id) & (
+            models.Q(owners__in=user_owners) | 
+            models.Q(primary_owner__in=user_owners) | 
+            models.Q(owner__in=user_owners)
+        )
+    ).exists()
+    
+    if not office_accessible:
+        return redirect(reverse('home'))
+    
+    if request.method == "POST":
+        form = EmployeeForm(data=request.POST, instance=employee)
+        if form.is_valid():
+            updated_employee = form.save()
+            return redirect(reverse('office_dashboard', args=[employee.office.id]))
+    else:
+        form = EmployeeForm(instance=employee)
+    
+    return render(request, "owners/employee_edit.html", {
+        "form": form,
+        "employee": employee,
+        "office": employee.office,
+        "page_title": f"Edit {employee.name}"
+    })
 
 def employee_delete(request, employee_id):
     employee = get_object_or_404(Employee, pk=employee_id)

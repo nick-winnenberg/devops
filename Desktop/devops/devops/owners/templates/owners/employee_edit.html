@@ -1,0 +1,112 @@
+{% extends "owners/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fw-bold">Edit Employee: {{ employee.name }}</h2>
+        <p class="text-muted">Update employee information and details</p>
+    </div>
+</div>
+
+<!-- Current Employee Information -->
+<div class="card mb-4">
+    <div class="card-header fw-bold">
+        <i class="fas fa-info-circle me-2"></i>Current Information
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold">Employee Details</h6>
+                <p class="mb-1"><strong>Current Name:</strong> {{ employee.name }}</p>
+                <p class="mb-1"><strong>Position:</strong> {{ employee.position }}</p>
+                {% if employee.email %}
+                    <p class="mb-1"><strong>Email:</strong> {{ employee.email }}</p>
+                {% else %}
+                    <p class="mb-1 text-muted">No email on file</p>
+                {% endif %}
+                <p class="mb-0"><strong>Potential Rating:</strong> {{ employee.potential }}/10</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">Office & Owner</h6>
+                <p class="mb-1">
+                    <strong>Office:</strong> 
+                    <a href="{% url 'office_dashboard' office.id %}" class="text-decoration-none">{{ office.name }}</a>
+                </p>
+                <p class="mb-1"><strong>Office Number:</strong> #{{ office.number }}</p>
+                <p class="mb-1"><strong>Address:</strong> {{ office.address }}</p>
+                <p class="mb-0">
+                    <strong>Owner:</strong> 
+                    {% if employee.owner %}
+                        <a href="{% url 'owner_dashboard' employee.owner.id %}" class="text-decoration-none">{{ employee.owner.name }}</a>
+                    {% else %}
+                        <span class="text-muted">No owner assigned</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Form -->
+<div class="card mb-4">
+    <div class="card-header fw-bold">
+        <i class="fas fa-edit me-2"></i>Edit Employee Information
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <fieldset class="form-group mb-3">
+                {{ form|crispy }}
+            </fieldset>
+            
+            <!-- Form Actions -->
+            <hr class="mb-4">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'office_dashboard' office.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to {{ office.name }}
+                </a>
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Employee Activity -->
+<div class="card">
+    <div class="card-header fw-bold">
+        <i class="fas fa-chart-line me-2"></i>Employee Activity
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h6 class="fw-bold">Reports</h6>
+                <p class="mb-0">{{ employee.report_set.count }} communication{{ employee.report_set.count|pluralize }}</p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">Latest Report</h6>
+                <p class="mb-0">
+                    {% with employee.report_set.first as latest_report %}
+                        {% if latest_report %}
+                            <a href="{% url 'report_dashboard' latest_report.id %}" class="text-decoration-none">
+                                {{ latest_report.created_at|date:"M d, Y" }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No reports yet</span>
+                        {% endif %}
+                    {% endwith %}
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">Quick Actions</h6>
+                <a href="{% url 'log_call_from_employee' employee.id %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-phone me-1"></i>Log Call
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
