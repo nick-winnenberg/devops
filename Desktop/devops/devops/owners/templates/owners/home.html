@@ -25,7 +25,7 @@
             <div class="card-header bg-dark text-white">This Week</div>
             <div class="card-body">
                 <div class="fs-5 fw-bold">All Reports: {{ this_week_number_reports_count }}</div>
-                <div class="fs-6">Fov: {{ weekly_fovs }}</div>
+                <div class="fs-6">Fov: {{ this_week_number_fov_counts }}</div>
             </div>
         </div>
     </div>
@@ -34,7 +34,16 @@
             <div class="card-header bg-primary text-white">Last Week</div>
             <div class="card-body">
                 <div class="fs-5 fw-bold text-primary">All Reports: {{ last_week_number_reports_count }}</div>
-                <div class="fs-6 text-primary">Fov: {{ weekly_fovs }}</div>
+                <div class="fs-6 text-primary">Fov: {{ last_week_number_fov_counts }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">Last Week</div>
+            <div class="card-body">
+                <div class="fs-5 fw-bold text-primary">All Reports: {{ last_month_number_reports_count }}</div>
+                <div class="fs-6 text-primary">Fov: {{  last_month_number_fov_counts }}</div>
             </div>
         </div>
     </div>
@@ -70,40 +79,6 @@
                     {% empty %}
                     <tr>
                         <td colspan="4" class="text-center">No owners found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<div class="card mb-4">
-    <div class="card-header fw-bold">Offices</div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Office Name</th>
-                        <th>Office Number</th>
-                        <th>Owner</th>
-                        <th>Vibes</th>
-                        <th>Total Reports</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for office in offices %}
-                    <tr>
-                        <td><a href="{% url 'office_dashboard' office.id %}">{{ office.name }}</a></td>
-                        <td>{{ office.number }}</td>
-                        <td>{{ office.owner.name }}</td>
-                        <td>{{ office.vibe }}</td>
-                        <td>{{ office.report_set.count }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">No offices found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

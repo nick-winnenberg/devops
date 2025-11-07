@@ -87,6 +87,7 @@ def home(request):
     reports_qs = Report.objects.filter(owner__in=owners).order_by('-created_at')
     reports = reports_qs[:5]  # Only show 5 most recent
     current_date = date.today()
+
     this_week_number = current_date.isocalendar()[1]
     last_week_number = (current_date - timedelta(days=7)).isocalendar()[1]
     last_week_number_reports = reports_qs.filter(
@@ -99,6 +100,17 @@ def home(request):
     )
     last_week_number_reports_count = last_week_number_reports.count()
     this_week_number_reports_count = this_week_number_reports.count()
+    last_week_number_fov_counts = last_week_number_reports.filter(calltype='fov').count()
+    this_week_number_fov_counts = this_week_number_reports.filter(calltype='fov').count()
+    
+
+    this_month_number = current_date.month
+    last_month_reports = reports_qs.filter(
+        created_at__month=this_month_number,
+        created_at__year=current_date.year
+    )
+    last_month_number_reports_count = last_month_reports.count()
+    last_month_number_fov_counts = last_week_number_reports.filter(calltype='fov').count()
 
     # Date ranges
     last_week = current_date - timedelta(days=7)
@@ -147,6 +159,10 @@ def home(request):
         "last_week_number_reports": last_week_number_reports,
         "this_week_number_reports_count": this_week_number_reports_count,
         "last_week_number_reports_count": last_week_number_reports_count,
+        "last_month_number_reports_count": last_month_number_reports_count,
+        "last_week_number_fov_counts": last_week_number_fov_counts,
+        "this_week_number_fov_counts": this_week_number_fov_counts,
+        "last_month_number_fov_counts": last_month_number_fov_counts,
     })
 
 def owner_create(request):
