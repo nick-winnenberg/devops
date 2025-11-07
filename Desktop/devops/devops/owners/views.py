@@ -87,6 +87,18 @@ def home(request):
     reports_qs = Report.objects.filter(owner__in=owners).order_by('-created_at')
     reports = reports_qs[:5]  # Only show 5 most recent
     current_date = date.today()
+    this_week_number = current_date.isocalendar()[1]
+    last_week_number = (current_date - timedelta(days=7)).isocalendar()[1]
+    last_week_number_reports = reports_qs.filter(
+        created_at__week=last_week_number,
+        created_at__year=current_date.year
+    )
+    this_week_number_reports = reports_qs.filter(
+        created_at__week=this_week_number,
+        created_at__year=current_date.year
+    )
+    last_week_number_reports_count = last_week_number_reports.count()
+    this_week_number_reports_count = this_week_number_reports.count()
 
     # Date ranges
     last_week = current_date - timedelta(days=7)
@@ -129,6 +141,12 @@ def home(request):
         "yearly_fovs": yearly_fovs,
         "today_reports_count": today_reports_count,
         "today_fovs": today_fovs,
+        "this_week_number": this_week_number,
+        "last_week_number": last_week_number,
+        "this_week_number_reports": this_week_number_reports,
+        "last_week_number_reports": last_week_number_reports,
+        "this_week_number_reports_count": this_week_number_reports_count,
+        "last_week_number_reports_count": last_week_number_reports_count,
     })
 
 def owner_create(request):

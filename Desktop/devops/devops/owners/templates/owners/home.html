@@ -20,30 +20,21 @@
             </div>
         </div>
     </div>
+        <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">This Week</div>
+            <div class="card-body">
+                <div class="fs-5 fw-bold">All Reports: {{ this_week_number_reports_count }}</div>
+                <div class="fs-6">Fov: {{ weekly_fovs }}</div>
+            </div>
+        </div>
+    </div>
     <div class="col-md-3">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">Last Seven Days</div>
+            <div class="card-header bg-primary text-white">Last Week</div>
             <div class="card-body">
-                <div class="fs-5 fw-bold text-primary">All Reports: {{ weekly_reports_count }}</div>
+                <div class="fs-5 fw-bold text-primary">All Reports: {{ last_week_number_reports_count }}</div>
                 <div class="fs-6 text-primary">Fov: {{ weekly_fovs }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card shadow-sm">
-            <div class="card-header bg-success text-white">Last 30 Days</div>
-            <div class="card-body">
-                <div class="fs-5 fw-bold text-success">All Reports: {{ monthly_reports_count }}</div>
-                <div class="fs-6 text-success">Fov: {{ monthly_fovs }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card shadow-sm">
-            <div class="card-header bg-warning text-dark">Last 90 Days</div>
-            <div class="card-body">
-                <div class="fs-5 fw-bold text-warning">All Reports: {{ yearly_reports_count }}</div>
-                <div class="fs-6 text-warning">Fov: {{ quarterly_fovs }}</div>
             </div>
         </div>
     </div>
