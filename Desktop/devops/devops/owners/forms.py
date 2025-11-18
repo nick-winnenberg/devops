@@ -18,6 +18,7 @@ from django.db import models
 from .models import Owner, Office, Employee, Report
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, get_list_or_404, redirect
+from datetime import date
 
 
 class OwnerForm(forms.ModelForm):
@@ -49,9 +50,20 @@ class OwnerForm(forms.ModelForm):
         help_text="Check to set this owner as the primary contact for selected offices"
     )
     
+    # Date field with current date default
+    last_contacted = forms.DateField(
+        required=False,
+        initial=date.today,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        help_text="Date of last contact with this owner (defaults to today)"
+    )
+    
     class Meta:
         model = Owner
-        fields = ['name', 'email']
+        fields = ['name', 'email', 'last_contacted']
     
     def __init__(self, *args, **kwargs):
         # Accept user context to filter offices by the current user
@@ -94,9 +106,20 @@ class OfficeForm(forms.ModelForm):
         - state: State/province (required)
         - zip_code: Postal/ZIP code (required)
     """
+    # Date field with current date default
+    last_contacted = forms.DateField(
+        required=False,
+        initial=date.today,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        help_text="Date of last contact with this office (defaults to today)"
+    )
+    
     class Meta:
         model = Office
-        fields = ['name','number','address','city','state','zip_code']
+        fields = ['name','number','address','city','state','zip_code','last_contacted']
 
 
 class EmployeeForm(forms.ModelForm):
@@ -158,6 +181,12 @@ class ReportForm(forms.ModelForm):
         model = Report
         # include office and new additional_parties field
         fields = ['subject', 'transcript', 'content', 'vibe', 'calltype', 'office', 'additional_parties']
+        widgets = {
+            'created_at': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'form-control'
+            })
+        }
 
     def __init__(self, *args, **kwargs):
         # accept an optional `owner` kwarg to limit office choices
