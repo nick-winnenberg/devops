@@ -177,10 +177,22 @@ class ReportForm(forms.ModelForm):
         label="Additional Parties Involved"
     )
     
+    # Date field for when the call/communication actually happened
+    call_date = forms.DateField(
+        required=False,
+        initial=date.today,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
+        help_text="Date when this call or communication took place (defaults to today)",
+        label="Call/Communication Date"
+    )
+    
     class Meta:
         model = Report
-        # include office and new additional_parties field
-        fields = ['subject', 'transcript', 'content', 'vibe', 'calltype', 'office', 'additional_parties']
+        # include office, additional_parties, and call_date fields
+        fields = ['call_date', 'subject', 'transcript', 'content', 'vibe', 'calltype', 'office', 'additional_parties']
         widgets = {
             'created_at': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
@@ -218,9 +230,16 @@ class ReportForm(forms.ModelForm):
     
     def save(self, commit=True):
         """
-        Enhanced save method to incorporate additional parties into report content.
+        Enhanced save method to incorporate additional parties and call date into report content.
         """
         report = super().save(commit=False)
+        
+        # Add call date information to content if provided
+        call_date = self.cleaned_data.get('call_date')
+        if call_date:
+            # Add call date at the beginning of content
+            date_header = f"CALL DATE: {call_date.strftime('%B %d, %Y')}\n" + "="*40 + "\n\n"
+            report.content = date_header + report.content
         
         # Append additional parties information to content if provided
         additional = self.cleaned_data.get('additional_parties')
