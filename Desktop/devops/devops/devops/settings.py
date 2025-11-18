@@ -94,7 +94,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Environment-specific settings
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-g0*j14c7*l++z+x2z2%p()+w+#(7w$p-mj=*dnamylj#9=@q=2')
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1','devops.up.railway.app').split(',')
 
 # Database configuration - SIMPLE AND BULLETPROOF
 import urllib.parse as urlparse
