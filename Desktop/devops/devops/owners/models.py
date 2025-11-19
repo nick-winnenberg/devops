@@ -213,7 +213,7 @@ class Employee(models.Model):
     position = models.CharField(max_length=100)
     email = models.EmailField(null=True, blank=True)
     potential = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)], default=5)
-    office = models.ForeignKey(Office, on_delete=models.CASCADE)
+    office = models.ForeignKey(Office, on_delete=models.CASCADE, related_name='employees')
     
     # DEPRECATED: Keep during migration, but make nullable
     # TODO: Remove this field after migration - use office relationships instead

@@ -601,6 +601,7 @@ def log_call_from_office(request, office_id):
         form = ReportForm()
     return render(request, "owners/form_create.html", {"form": form, "office": office})
 
+
 def log_call_from_owner(request, owner_id):
     """
     Log communication reports from owner context with enhanced office selection.
@@ -758,12 +759,6 @@ def activity_dashboard(request):
     # Get all FOV reports from the filtered queryset
     fov_reports = reports.filter(calltype='fov')
 
-
-
-
-
-
-
     return render(request, "owners/activity_dashboard.html", {
         "reports": reports,
         "form": form,
@@ -776,3 +771,4 @@ def activity_dashboard(request):
         "grand_total": grand_total,
         "fov_reports": fov_reports,
     })
+
