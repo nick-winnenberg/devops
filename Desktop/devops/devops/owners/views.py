@@ -370,6 +370,13 @@ def owner_delete(request, owner_id):
         return redirect(reverse('home'))
     return render(request, "owners/delete.html", {"object": owner, "type": "owner"})
 
+def office_delete(request, office_id):
+    office = get_object_or_404(Office, pk=office_id)
+    if request.method == "POST":
+        office.delete()
+        return redirect(reverse('home'))
+    return render(request, "owners/delete.html", {"object": office, "type": "office"})
+
 def owner_dashboard(request, owner_id):
     owner = get_object_or_404(Owner, pk=owner_id)
     # Updated to use multi-owner relationships - show offices where this owner is involved
