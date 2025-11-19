@@ -22,4 +22,5 @@ urlpatterns = [
     path("report/<int:report_id>/", views.report_dashboard, name="report_dashboard"),
     path("activity/", views.activity_dashboard, name="activity_dashboard"),
     path("office/<int:office_id>/delete/", views.office_delete, name="office_delete"),
+    path("office/<int:office_id>/manage_owners/", views.office_manage_owners, name="office_manage_owners"),
 ]

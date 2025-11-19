@@ -468,6 +468,80 @@ def office_edit(request, office_id):
         "page_title": f"Edit {office.name}"
     })
 
+def office_manage_owners(request, office_id):
+    """
+    Admin function to manage owner associations for an existing office.
+    
+    Allows adding/removing existing owners to/from an office and setting
+    the primary owner. This is an administrative function for complex
+    ownership scenarios.
+    
+    Args:
+        request: HTTP request object with authenticated user
+        office_id: ID of the office to manage owners for
+        
+    Returns:
+        GET: Rendered owner management form
+        POST: Process owner changes and redirect to office dashboard
+    """
+    office = get_object_or_404(Office, pk=office_id)
+    
+    # Security check: ensure user has access to this office
+    user_owners = Owner.objects.filter(user=request.user)
+    office_accessible = Office.objects.filter(
+        models.Q(id=office_id) & (
+            models.Q(owners__in=user_owners) | 
+            models.Q(primary_owner__in=user_owners) | 
+            models.Q(owner__in=user_owners)
+        )
+    ).exists()
+    
+    if not office_accessible:
+        return redirect(reverse('home'))
+    
+    if request.method == "POST":
+        # Get selected owners and primary owner from form
+        selected_owner_ids = request.POST.getlist('owners')
+        primary_owner_id = request.POST.get('primary_owner')
+        
+        # Clear existing many-to-many relationships
+        office.owners.clear()
+        
+        # Add selected owners
+        if selected_owner_ids:
+            selected_owners = Owner.objects.filter(
+                id__in=selected_owner_ids,
+                user=request.user  # Security: only user's owners
+            )
+            office.owners.set(selected_owners)
+            
+            # Set primary owner if specified and valid
+            if primary_owner_id and primary_owner_id in selected_owner_ids:
+                primary_owner = Owner.objects.get(
+                    id=primary_owner_id,
+                    user=request.user
+                )
+                office.primary_owner = primary_owner
+                office.save()
+            elif selected_owners.exists():
+                # If no primary specified but owners selected, use first as primary
+                office.primary_owner = selected_owners.first()
+                office.save()
+        
+        return redirect(reverse('office_dashboard', args=[office_id]))
+    
+    # GET request - show current state and available owners
+    current_owners = office.owners.all()
+    available_owners = Owner.objects.filter(user=request.user)
+    
+    return render(request, "owners/office_manage_owners.html", {
+        "office": office,
+        "current_owners": current_owners,
+        "available_owners": available_owners,
+        "primary_owner": office.primary_owner,
+        "page_title": f"Manage Owners - {office.name}"
+    })
+
 def office_dashboard(request, office_id):
     office = get_object_or_404(Office, pk=office_id)
     # Get all owners of this office (multi-owner support)

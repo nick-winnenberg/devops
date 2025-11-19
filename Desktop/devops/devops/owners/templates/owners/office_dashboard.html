@@ -7,8 +7,11 @@
         <h2 class="fw-bold">{{ office.name }} Dashboard</h2>
     </div>
     <div class="col-auto d-flex align-items-center">
-        <a class="btn btn-outline-secondary" href="{% url 'office_edit' office.id %}">
+        <a class="btn btn-outline-secondary me-2" href="{% url 'office_edit' office.id %}">
             <i class="fas fa-edit me-1"></i>Edit Office
+        </a>
+        <a class="btn btn-outline-warning" href="{% url 'office_manage_owners' office.id %}">
+            <i class="fas fa-users-cog me-1"></i>Manage Owners
         </a>
     </div>
 </div>

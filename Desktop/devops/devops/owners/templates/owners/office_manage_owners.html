@@ -1,0 +1,176 @@
+{% extends "owners/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold"><i class="fas fa-users-cog me-2"></i>{{ page_title }}</h2>
+            <a href="{% url 'office_dashboard' office.id %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Office Dashboard
+            </a>
+        </div>
+        <p class="text-muted">Administrative function to manage owner associations for this office.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Owner Management</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Select Owners for this Office:</label>
+                        <div class="border p-3 rounded bg-light">
+                            {% for owner in available_owners %}
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input" 
+                                    type="checkbox" 
+                                    name="owners" 
+                                    value="{{ owner.id }}" 
+                                    id="owner_{{ owner.id }}"
+                                    {% if owner in current_owners %}checked{% endif %}
+                                >
+                                <label class="form-check-label" for="owner_{{ owner.id }}">
+                                    <strong>{{ owner.name }}</strong>
+                                    {% if owner.email %}<small class="text-muted"> - {{ owner.email }}</small>{% endif %}
+                                </label>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted mb-0">No owners available. Create owners first.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {% if available_owners %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Primary Owner (Main Contact):</label>
+                        <select name="primary_owner" class="form-select" id="primaryOwnerSelect">
+                            <option value="">-- Select Primary Owner --</option>
+                            {% for owner in available_owners %}
+                            <option 
+                                value="{{ owner.id }}" 
+                                {% if owner == primary_owner %}selected{% endif %}
+                            >
+                                {{ owner.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">The primary owner will be the main contact for this office.</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>Save Owner Associations
+                        </button>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Current Status</h6>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-bold">Office: {{ office.name }}</h6>
+                <p class="mb-1"><strong>Address:</strong> {{ office.address }}, {{ office.city }}</p>
+                <p class="mb-3"><strong>Office #:</strong> {{ office.number }}</p>
+
+                <h6 class="fw-bold">Current Owners:</h6>
+                {% if current_owners %}
+                <ul class="list-unstyled">
+                    {% for owner in current_owners %}
+                    <li class="mb-1">
+                        <span class="badge bg-secondary">{{ owner.name }}</span>
+                        {% if owner == primary_owner %}
+                        <span class="badge bg-primary ms-1">Primary</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No owners currently assigned</p>
+                {% endif %}
+
+                <h6 class="fw-bold mt-3">Employees:</h6>
+                {% if office.employees.all %}
+                <ul class="list-unstyled">
+                    {% for employee in office.employees.all %}
+                    <li class="mb-1">
+                        <small class="text-muted">{{ employee.name }} - {{ employee.position }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No employees assigned</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Admin Notes</h6>
+            </div>
+            <div class="card-body">
+                <small>
+                    <ul class="mb-0">
+                        <li>This is an administrative function for complex ownership scenarios</li>
+                        <li>At least one owner should be selected</li>
+                        <li>Primary owner is used for main communications</li>
+                        <li>Changes affect reporting and access permissions</li>
+                    </ul>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dynamic primary owner selection based on checked owners
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('input[name="owners"]');
+    const primarySelect = document.getElementById('primaryOwnerSelect');
+    
+    function updatePrimaryOptions() {
+        const checkedValues = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        // Reset primary select
+        Array.from(primarySelect.options).forEach(option => {
+            if (option.value) {
+                option.style.display = checkedValues.includes(option.value) ? 'block' : 'none';
+            }
+        });
+        
+        // If current primary owner is no longer selected, clear the selection
+        if (primarySelect.value && !checkedValues.includes(primarySelect.value)) {
+            primarySelect.value = '';
+        }
+        
+        // If only one owner selected, auto-select as primary
+        if (checkedValues.length === 1) {
+            primarySelect.value = checkedValues[0];
+        }
+    }
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updatePrimaryOptions);
+    });
+    
+    // Initialize on page load
+    updatePrimaryOptions();
+});
+</script>
+
+{% endblock %}
