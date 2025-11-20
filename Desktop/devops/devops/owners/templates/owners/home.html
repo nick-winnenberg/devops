@@ -16,7 +16,9 @@
             <div class="card-header bg-dark text-white">Today</div>
             <div class="card-body">
                 <div class="fs-5 fw-bold">All Reports: {{ today_reports_count }}</div>
-                <div class="fs-6">Fov: {{ today_fovs }}</div>
+                <div class="fs-6">Fovs: {{ today_fovs }}</div>
+                <div class="fs-6">Owner Reports: {{ today_owner_reports.count }}</div>
+                <div class="fs-6">Employee Reports: {{ today_employee_reports.count }}</div>
             </div>
         </div>
     </div>
@@ -40,7 +42,7 @@
     </div>
     <div class="col-md-3">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">Last Week</div>
+            <div class="card-header bg-primary text-white">Last Month</div>
             <div class="card-body">
                 <div class="fs-5 fw-bold text-primary">All Reports: {{ last_month_number_reports_count }}</div>
                 <div class="fs-6 text-primary">Fov: {{  last_month_number_fov_counts }}</div>

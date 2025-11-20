@@ -47,40 +47,10 @@ def index(request):
     return HttpResponse("Hello, world. Welcome!")
 
 def home(request):
-    """
-    Main dashboard view showing comprehensive activity overview.
-    
-    Displays activity statistics, recent reports, and quick access to all
-    user-owned entities. Calculates time-based metrics including FOV counts
-    and provides the central navigation hub for the CRM system.
-    
-    Features:
-        - Activity counts by time period (today, week, month, quarter, year)
-        - Field Visit (FOV) tracking and statistics
-        - Recent reports display (5 most recent)
-        - Quick access to owners and offices
-    
-    Security:
-        - Only shows data owned by the current user
-        - All querysets filtered by user's owners
-        
-    Args:
-        request: HTTP request with authenticated user
-        
-    Returns:
-        Rendered HTML response with dashboard context including:
-            - owners: User's property owners
-            - offices: User's office spaces  
-            - reports: 5 most recent reports
-            - Activity counts by time period
-            - FOV counts by time period
-    """
-    # Redirect to login if user is not authenticated
     if not request.user.is_authenticated:
         return redirect('login')
     
     owners = Owner.objects.filter(user=request.user)
-    # Updated to use multi-owner relationships
     offices = Office.objects.filter(
         models.Q(owners__in=owners) | models.Q(primary_owner__in=owners) | models.Q(owner__in=owners)
     ).distinct()
@@ -98,6 +68,7 @@ def home(request):
         created_at__week=this_week_number,
         created_at__year=current_date.year
     )
+
     last_week_number_reports_count = last_week_number_reports.count()
     this_week_number_reports_count = this_week_number_reports.count()
     last_week_number_fov_counts = last_week_number_reports.filter(calltype='fov').count()
@@ -120,6 +91,9 @@ def home(request):
 
     # Filtered report counts
     today_reports = reports_qs.filter(created_at__date=current_date)
+    today_owner_reports = today_reports.filter(owner__in=owners)
+    today_employee_reports = today_reports.filter(employee__office__in=offices)
+
     weekly_reports = reports_qs.filter(created_at__gte=last_week)
     monthly_reports = reports_qs.filter(created_at__gte=last_month)
     quarterly_reports = reports_qs.filter(created_at__gte=last_quarter)
@@ -163,6 +137,8 @@ def home(request):
         "last_week_number_fov_counts": last_week_number_fov_counts,
         "this_week_number_fov_counts": this_week_number_fov_counts,
         "last_month_number_fov_counts": last_month_number_fov_counts,
+        "today_owner_reports": today_owner_reports,
+        "today_employee_reports": today_employee_reports,
     })
 
 def owner_create(request):
