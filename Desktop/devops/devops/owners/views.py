@@ -55,7 +55,7 @@ def home(request):
         models.Q(owners__in=owners) | models.Q(primary_owner__in=owners) | models.Q(owner__in=owners)
     ).distinct()
     reports_qs = Report.objects.filter(
-        models.Q(owner__in=owners) | models.Q(employee__office__in=offices)
+        models.Q(owner__in=owners) | models.Q(office__in=offices)
     ).distinct().order_by('-created_at')
     reports = reports_qs[:5]  # Only show 5 most recent
     current_date = date.today()
