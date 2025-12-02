@@ -15,7 +15,6 @@ View Categories:
 Security Model:
     All views implement user-based data isolation by filtering objects
     through the user's ownership chain: User → Owner → Office → Employee → Report
-redeploy
     """
 
 # Django imports
