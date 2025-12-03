@@ -40,12 +40,21 @@ def home(request):
     this_week = current_date.isocalendar()[1]
     last_week = (current_date - timedelta(days=7)).isocalendar()[1]
     this_month = current_date.month
+    
+    # Calculate last month (handles year boundary)
+    if this_month == 1:
+        last_month = 12
+        last_month_year = current_year - 1
+    else:
+        last_month = this_month - 1
+        last_month_year = current_year
 
     # Filter reports by time periods
     today_reports = reports_qs.filter(created_at__date=current_date)
     this_week_reports = reports_qs.filter(created_at__week=this_week, created_at__year=current_year)
     last_week_reports = reports_qs.filter(created_at__week=last_week, created_at__year=current_year)
     this_month_reports = reports_qs.filter(created_at__month=this_month, created_at__year=current_year)
+    last_month_reports = reports_qs.filter(created_at__month=last_month, created_at__year=last_month_year)
 
     # Calculate counts for each period
     def get_report_stats(period_reports):
@@ -61,6 +70,7 @@ def home(request):
     this_week_stats = get_report_stats(this_week_reports)
     last_week_stats = get_report_stats(last_week_reports)
     this_month_stats = get_report_stats(this_month_reports)
+    last_month_stats = get_report_stats(last_month_reports)
 
     return render(request, "owners/home.html", {
         "owners": owners,
@@ -81,11 +91,16 @@ def home(request):
         "last_week_number_fov_counts": last_week_stats['fovs'],
         "last_week_owner_reports_count": last_week_stats['owner'],
         "last_week_employee_reports_count": last_week_stats['employee'],
-        # This month stats (labeled as "last month" in template)
-        "last_month_number_reports_count": this_month_stats['total'],
-        "last_month_number_fov_counts": this_month_stats['fovs'],
-        "last_month_owner_reports_count": this_month_stats['owner'],
-        "last_month_employee_reports_count": this_month_stats['employee'],
+        # This month stats
+        "this_month_number_reports_count": this_month_stats['total'],
+        "this_month_number_fov_counts": this_month_stats['fovs'],
+        "this_month_owner_reports_count": this_month_stats['owner'],
+        "this_month_employee_reports_count": this_month_stats['employee'],
+        # Last month stats
+        "last_month_number_reports_count": last_month_stats['total'],
+        "last_month_number_fov_counts": last_month_stats['fovs'],
+        "last_month_owner_reports_count": last_month_stats['owner'],
+        "last_month_employee_reports_count": last_month_stats['employee'],
     })
 
 def owner_create(request):
