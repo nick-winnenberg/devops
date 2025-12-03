@@ -1,17 +1,4 @@
-"""
-Django Forms for DevOps CRM System
-
-This module defines forms for creating and editing CRM entities including
-owners, offices, employees, and communication reports. All forms use
-ModelForm for automatic field generation with custom validation and
-field configuration where needed.
-
-Forms included:
-    - OwnerForm: Create/edit property owners
-    - OfficeForm: Create/edit office spaces  
-    - EmployeeForm: Create/edit employees
-    - ReportForm: Create communication reports with dynamic office filtering
-"""
+"""Django Forms for DevOps CRM System."""
 
 from django import forms
 from django.db import models
@@ -22,20 +9,8 @@ from datetime import date
 
 
 class OwnerForm(forms.ModelForm):
-    """
-    Enhanced form for creating and editing Owner instances with office association.
+    """Form for creating/editing owners with office associations."""
     
-    Includes basic owner information and optional office selection to enable
-    tying new owners to existing offices for multi-owner scenarios.
-    
-    Fields:
-        - name: Owner/company name (required)
-        - email: Contact email address (optional)
-        - offices: Multiple office selection (optional)
-        - set_as_primary: Whether to set as primary owner for selected offices
-    """
-    
-    # Multi-select field for associating owner with existing offices
     offices = forms.ModelMultipleChoiceField(
         queryset=Office.objects.none(),  # Will be set in __init__
         widget=forms.CheckboxSelectMultiple,
@@ -91,22 +66,8 @@ class OwnerForm(forms.ModelForm):
             self.fields['set_as_primary'].widget = forms.HiddenInput()
 
 class OfficeForm(forms.ModelForm):
-    """
-    Form for creating and editing Office instances.
+    """Form for creating/editing office information."""
     
-    Includes all office location and identification details.
-    The owner field is automatically set in the view based on
-    the URL context to ensure proper relationships.
-    
-    Fields:
-        - name: Office identifier/name (required)
-        - number: Office number with 1-100 validation (required) 
-        - address: Street address (required)
-        - city: City name (required)
-        - state: State/province (required)
-        - zip_code: Postal/ZIP code (required)
-    """
-    # Date field with current date default
     last_contacted = forms.DateField(
         required=False,
         initial=date.today,
@@ -123,49 +84,15 @@ class OfficeForm(forms.ModelForm):
 
 
 class EmployeeForm(forms.ModelForm):
-    """
-    Form for creating and editing Employee instances.
-    
-    Includes employee personal and professional information.
-    The office and owner fields are automatically set in the view
-    based on URL context to maintain proper relationships.
-    
-    Fields:
-        - name: Employee full name (required)
-        - position: Job title/role (required)
-        - email: Contact email address (optional)
-        - potential: Business potential rating 1-10 (required, default 5)
-    """
+    """Form for creating/editing employee information."""
     class Meta:
         model = Employee
         fields = ['name','position','email','potential']
 
 
 class ReportForm(forms.ModelForm):
-    """
-    Form for creating communication reports with enhanced owner-office clarity.
+    """Form for creating communication reports with dynamic office filtering."""
     
-    This form includes special logic to limit office choices based on the
-    owner context, ensuring users can only select offices they own.
-    Enhanced with better labeling and help text for multi-owner scenarios.
-    
-    Features:
-        - Dynamic office queryset filtering by owner
-        - Clear owner-office relationship display
-        - Optional additional parties field for complex scenarios
-        - All report content and metadata fields included
-    
-    Fields:
-        - subject: Optional subject line
-        - transcript: Whether transcript is available (checkbox)
-        - content: Main report content (required)
-        - vibe: Interaction quality rating 1-10 (required, default 5)
-        - calltype: Communication method (required, dropdown)
-        - office: Optional office selection (filtered by owner with enhanced labels)
-        - additional_parties: Optional field for noting other involved parties
-    """
-    
-    # Add field for noting additional parties involved
     additional_parties = forms.CharField(
         max_length=500,
         required=False,
@@ -229,9 +156,7 @@ class ReportForm(forms.ModelForm):
             self.fields['office'].help_text = "Office selection will be available when creating reports from owner context."
     
     def save(self, commit=True):
-        """
-        Enhanced save method to incorporate additional parties and call date into report content.
-        """
+        """Save report with call date and additional parties appended to content."""
         report = super().save(commit=False)
         
         # Add call date information to content if provided

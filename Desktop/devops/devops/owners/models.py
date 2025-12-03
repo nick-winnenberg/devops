@@ -1,23 +1,4 @@
-"""
-CRM Models for DevOps Office Management System - Enhanced Multi-Owner Support
-
-This module defines the core data models for managing property owners,
-office spaces, employees, and communication reports with support for
-multiple owners per office.
-
-Enhanced Models hierarchy:
-    User (Django built-in)
-    └── Owner (1:Many) - Property/building owners
-        └── Office (Many:Many) - Individual office spaces (can have multiple owners)
-            └── Employee (1:Many) - People working in offices
-                └── Report (1:Many) - Communication logs with flexible owner relationships
-
-Key Features:
-    - Multiple owners per office support
-    - Primary owner designation for main contact
-    - Backward compatibility with existing single-owner offices
-    - Enhanced reporting relationships
-"""
+"""CRM Models for DevOps Office Management System with Multi-Owner Support."""
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -25,54 +6,18 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Owner(models.Model):
-    """
-    Represents a property or building owner in the CRM system.
-    
-    Each owner can have multiple offices and is linked to a specific user
-    for multi-tenant data isolation. Tracks basic contact information and
-    the date of last communication for follow-up purposes.
-    
-    Attributes:
-        user (ForeignKey): Link to Django User for data ownership
-        name (CharField): Owner/company name (max 200 chars)
-        email (EmailField): Contact email address (optional)
-        last_contacted (DateField): Date of most recent communication (optional)
-    """
+    """Property/building owner with user association and contact tracking."""
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=200)
     email = models.EmailField(null=True, blank=True)
     last_contacted = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        """Return the owner name as the string representation."""
         return self.name
 
 
 class Office(models.Model):
-    """
-    Enhanced office model supporting multiple owners with flexible ownership relationships.
-    
-    Each office can have multiple owners with one designated as the primary contact.
-    Maintains backward compatibility while enabling complex ownership scenarios
-    like partnerships, joint ventures, and shared management agreements.
-    
-    Enhanced Attributes:
-        name (CharField): Office identifier/name (max 200 chars)
-        number (IntegerField): Office number (1-100 range validation)
-        address (CharField): Street address (max 200 chars)
-        city (CharField): City name (max 100 chars)
-        state (CharField): State/province (max 100 chars)
-        zip_code (CharField): Postal/ZIP code (max 20 chars)
-        
-        # NEW MULTI-OWNER SUPPORT:
-        owners (ManyToManyField): All owners of this office (multiple allowed)
-        primary_owner (ForeignKey): Main owner/primary contact (required)
-        
-        # DEPRECATED (kept for migration compatibility):
-        owner (ForeignKey): Single owner (will be removed after migration)
-        
-        last_contacted (DateField): Date of most recent communication (optional)
-    """
+    """Office space with multi-owner support and primary contact designation."""
     name = models.CharField(max_length=200)
     number = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)])
     address = models.CharField(max_length=200)
@@ -80,7 +25,7 @@ class Office(models.Model):
     state = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=20)
     
-    # NEW: Multiple owners support with many-to-many relationship
+    # Multi-owner support
     owners = models.ManyToManyField(
         Owner, 
         related_name='offices',
@@ -88,7 +33,7 @@ class Office(models.Model):
         help_text="All owners of this office (can select multiple)"
     )
     
-    # NEW: Primary owner for main contact and backward compatibility
+    # Primary owner for main contact
     primary_owner = models.ForeignKey(
         Owner, 
         on_delete=models.CASCADE,
@@ -98,8 +43,7 @@ class Office(models.Model):
         help_text="Main owner who serves as primary contact"
     )
     
-    # DEPRECATED: Keep old single owner field during migration transition
-    # TODO: Remove this field after successful migration and data transfer
+    # Deprecated: single owner (kept for migration compatibility)
     owner = models.ForeignKey(
         Owner, 
         on_delete=models.CASCADE,
@@ -111,7 +55,6 @@ class Office(models.Model):
     last_contacted = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        """Enhanced string representation showing primary owner and total owner count."""
         if self.primary_owner:
             owner_count = self.owners.count()
             if owner_count > 1:
@@ -124,7 +67,6 @@ class Office(models.Model):
             return f"{self.name} (No Owner Assigned)"
     
     def get_owner_names(self):
-        """Get comma-separated list of all owner names."""
         if self.owners.exists():
             return ", ".join([owner.name for owner in self.owners.all()])
         elif self.owner:  # Fallback during migration
@@ -185,7 +127,6 @@ class Office(models.Model):
         return False
 
     class Meta:
-        """Meta options for the Office model."""
         ordering = ['name']
         verbose_name = 'Office Space'
         verbose_name_plural = 'Office Spaces'
@@ -258,7 +199,6 @@ class Employee(models.Model):
         return Owner.objects.none()
     
     def migrate_owner_relationship(self):
-        """Helper method to migrate from direct owner link to office-based ownership."""
         if self.owner and self.office:
             # Ensure the office has this owner
             if not self.office.is_owner(self.owner):
@@ -272,56 +212,21 @@ class Employee(models.Model):
         return False
 
     class Meta:
-        """Meta options for the Employee model."""
         ordering = ['name']
         verbose_name = 'Employee'
         verbose_name_plural = 'Employees'
 
 
 class Report(models.Model):
-    """
-    Enhanced communication report model supporting multi-owner office relationships.
-    
-    Reports can be linked to employees, offices, or owners directly, providing
-    flexible reporting relationships. Enhanced to work with multiple owners per office
-    and includes improved relationship tracking and owner involvement logging.
-    
-    Enhanced Key features:
-    - Flexible relationships (can link to employee, office, or primary owner)
-    - Multi-owner awareness for office-based reports
-    - Communication type categorization 
-    - Quality/vibe ratings for interaction assessment
-    - Automatic timestamp tracking
-    - User attribution for audit trails
-    - Additional parties tracking for multi-owner scenarios
-    
-    Enhanced Attributes:
-        subject (CharField): Optional subject line (max 200 chars)
-        transcript (BooleanField): Whether transcript is available (default False)
-        content (TextField): Main report content/notes (unlimited length)
-        created_at (DateTimeField): Automatic creation timestamp
-        employee (ForeignKey): Optional link to Employee (CASCADE delete)
-        office (ForeignKey): Optional link to Office (CASCADE delete)
-        
-        # ENHANCED OWNER RELATIONSHIPS:
-        primary_owner (ForeignKey): Main owner contact for this report
-        additional_owners (ManyToManyField): Other owners involved in communication
-        
-        # DEPRECATED (kept for migration):
-        owner (ForeignKey): Single owner (being migrated to primary_owner)
-        
-        author (ForeignKey): User who created the report (CASCADE delete)
-        vibe (IntegerField): Interaction quality rating (1-10 scale, default 5)
-        calltype (CharField): Communication method type (see choices below)
-    """
+    """Communication report with multi-owner support and flexible relationships."""
 
-    # Communication type choices for calltype field
+    # Communication type choices
     calltype_choices = [
-        ('phone', 'Phone'),       # Standard phone calls
-        ('email', 'Email'),       # Email correspondence  
-        ('fov', 'Field Visit'),   # Field operations visits (FOV)
-        ('teams', 'Teams'),       # Microsoft Teams/video calls
-        ('other', 'Other'),       # Miscellaneous communication types
+        ('phone', 'Phone'),
+        ('email', 'Email'),
+        ('fov', 'Field Visit'),
+        ('teams', 'Teams'),
+        ('other', 'Other'),
     ]
 
     subject = models.CharField(max_length=200, null=True, blank=True)
@@ -329,11 +234,10 @@ class Report(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     
-    # Relationship fields
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, null=True, blank=True)
     office = models.ForeignKey(Office, on_delete=models.CASCADE, null=True, blank=True)
     
-    # NEW: Enhanced owner relationships for multi-owner support
+    # Enhanced owner relationships
     primary_owner = models.ForeignKey(
         Owner, 
         on_delete=models.CASCADE,
@@ -350,8 +254,7 @@ class Report(models.Model):
         help_text="Additional owners involved in this communication"
     )
     
-    # DEPRECATED: Keep old single owner field during migration
-    # TODO: Remove this field after successful migration to primary_owner
+    # Deprecated: single owner (kept for migration)
     owner = models.ForeignKey(
         Owner, 
         on_delete=models.CASCADE, 
@@ -366,7 +269,6 @@ class Report(models.Model):
     calltype = models.CharField(max_length=20, choices=calltype_choices, default='email')
 
     def __str__(self):
-        """Enhanced string representation with owner context."""
         timestamp = self.created_at.strftime("%Y-%m-%d %H:%M:%S")
         owner_info = self.get_primary_owner_name()
         if owner_info:
@@ -444,15 +346,13 @@ class Report(models.Model):
         return False
 
     class Meta:
-        """Meta options for the Report model."""
         ordering = ['-created_at']  # Most recent reports first
         verbose_name = 'Communication Report'
         verbose_name_plural = 'Communication Reports'
         
     def save(self, *args, **kwargs):
-        """Enhanced save method with automatic relationship inference."""
-        # Auto-set primary owner from employee or office if not explicitly set
-        if not self.primary_owner and not self.owner:  # Only if no owner is set
+        # Auto-set primary owner from employee or office if not set
+        if not self.primary_owner and not self.owner:
             if self.employee and self.employee.office:
                 self.primary_owner = self.employee.office.get_primary_owner()
             elif self.office:
