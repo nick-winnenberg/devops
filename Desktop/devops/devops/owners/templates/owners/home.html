@@ -17,8 +17,8 @@
             <div class="card-body">
                 <div class="fs-5 fw-bold">All Reports: {{ today_reports_count }}</div>
                 <div class="fs-6">Fovs: {{ today_fovs }}</div>
-                <div class="fs-6">Owner Reports: {{ today_owner_reports.count }}</div>
-                <div class="fs-6">Employee Reports: {{ today_employee_reports.count }}</div>
+                <div class="fs-6">Owner Reports: {{ today_owner_reports_count }}</div>
+                <div class="fs-6">Employee Reports: {{ today_employee_reports_count }}</div>
             </div>
         </div>
     </div>
@@ -27,7 +27,9 @@
             <div class="card-header bg-dark text-white">This Week</div>
             <div class="card-body">
                 <div class="fs-5 fw-bold">All Reports: {{ this_week_number_reports_count }}</div>
-                <div class="fs-6">Fov: {{ this_week_number_fov_counts }}</div>
+                <div class="fs-6">Fovs: {{ this_week_number_fov_counts }}</div>
+                <div class="fs-6">Owner Reports: {{ this_week_owner_reports_count }}</div>
+                <div class="fs-6">Employee Reports: {{ this_week_employee_reports_count }}</div>
             </div>
         </div>
     </div>
@@ -36,7 +38,9 @@
             <div class="card-header bg-primary text-white">Last Week</div>
             <div class="card-body">
                 <div class="fs-5 fw-bold text-primary">All Reports: {{ last_week_number_reports_count }}</div>
-                <div class="fs-6 text-primary">Fov: {{ last_week_number_fov_counts }}</div>
+                <div class="fs-6 text-primary">Fovs: {{ last_week_number_fov_counts }}</div>
+                <div class="fs-6 text-primary">Owner Reports: {{ last_week_owner_reports_count }}</div>
+                <div class="fs-6 text-primary">Employee Reports: {{ last_week_employee_reports_count }}</div>
             </div>
         </div>
     </div>
@@ -46,6 +50,8 @@
             <div class="card-body">
                 <div class="fs-5 fw-bold text-primary">All Reports: {{ last_month_number_reports_count }}</div>
                 <div class="fs-6 text-primary">Fov: {{  last_month_number_fov_counts }}</div>
+                <div class="fs-6 text-primary">Owner Reports: {{ last_month_owner_reports_count }}</div>
+                <div class="fs-6 text-primary">Employee Reports: {{ last_month_employee_reports_count }}</div>
             </div>
         </div>
     </div>
