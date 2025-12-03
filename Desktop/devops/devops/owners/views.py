@@ -86,18 +86,17 @@ def home(request):
     last_week_number_fov_counts = last_week_number_reports.filter(calltype='fov').count()
     this_week_number_fov_counts = this_week_number_reports.filter(calltype='fov').count()
     
-
     this_month_number = current_date.month
-    last_month_reports = reports_qs.filter(
+    this_month_reports = reports_qs.filter(
         created_at__month=this_month_number,
         created_at__year=current_date.year
     )
-    last_month_number_reports_count = last_month_reports.count()
-    last_month_number_fov_counts = last_week_number_reports.filter(calltype='fov').count()
-    last_month_owner_reports = last_month_reports.filter(owner__in=owners)
-    last_month_employee_reports = last_month_reports.filter(employee__office__in=offices)
-    last_month_owner_reports_count = last_month_owner_reports.count()
-    last_month_employee_reports_count = last_month_employee_reports.count()
+    this_month_number_reports_count = this_month_reports.count()
+    this_month_number_fov_counts = this_month_reports.filter(calltype='fov').count()
+    this_month_owner_reports = this_month_reports.filter(owner__in=owners)
+    this_month_employee_reports = this_month_reports.filter(employee__office__in=offices)
+    this_month_owner_reports_count = this_month_owner_reports.count()
+    this_month_employee_reports_count = this_month_employee_reports.count()
 
     # Date ranges
     last_week = current_date - timedelta(days=7)
@@ -153,10 +152,10 @@ def home(request):
         "last_week_number_reports": last_week_number_reports,
         "this_week_number_reports_count": this_week_number_reports_count,
         "last_week_number_reports_count": last_week_number_reports_count,
-        "last_month_number_reports_count": last_month_number_reports_count,
+        "last_month_number_reports_count": this_month_number_reports_count,
         "last_week_number_fov_counts": last_week_number_fov_counts,
         "this_week_number_fov_counts": this_week_number_fov_counts,
-        "last_month_number_fov_counts": last_month_number_fov_counts,
+        "last_month_number_fov_counts": this_month_number_fov_counts,
         "today_owner_reports": today_owner_reports,
         "today_employee_reports": today_employee_reports,
         "today_owner_reports_count": today_owner_reports_count,
@@ -169,10 +168,10 @@ def home(request):
         "last_week_employee_reports": last_week_employee_reports,
         "last_week_owner_reports_count": last_week_owner_reports_count,
         "last_week_employee_reports_count": last_week_employee_reports_count,
-        "last_month_owner_reports": last_month_owner_reports,
-        "last_month_employee_reports": last_month_employee_reports,
-        "last_month_owner_reports_count": last_month_owner_reports_count,
-        "last_month_employee_reports_count": last_month_employee_reports_count,
+        "last_month_owner_reports": this_month_owner_reports,
+        "last_month_owner_reports_count": this_month_owner_reports_count,
+        "last_month_employee_reports_count": this_month_employee_reports_count,
+        "last_month_employee_reports": this_month_employee_reports,
     })
 
 def owner_create(request):
