@@ -13,59 +13,46 @@
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white">Today</div>
+            <div class="card-header bg-primary text-white">Today</div>
             <div class="card-body">
-                <div class="fs-5 fw-bold">All Reports: {{ today_reports_count }}</div>
-                <div class="fs-6">Fovs: {{ today_fovs }}</div>
-                <div class="fs-6">Owner Reports: {{ today_owner_reports_count }}</div>
-                <div class="fs-6">Employee Reports: {{ today_employee_reports_count }}</div>
+                <div class="fs-5 fw-bold text-primary">All Reports: {{ today_reports_count }}</div>
+                <div class="fs-6 text-primary">Fovs: {{ today_fovs }}</div>
+                <div class="fs-6 text-primary">Owner Reports: {{ today_owner_reports_count }}</div>
+                <div class="fs-6 text-primary">Employee Reports: {{ today_employee_reports_count }}</div>
             </div>
         </div>
     </div>
-        <div class="col-md-3">
-        <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white">This Week</div>
-            <div class="card-body">
-                <div class="fs-5 fw-bold">All Reports: {{ this_week_number_reports_count }}</div>
-                <div class="fs-6">Fovs: {{ this_week_number_fov_counts }}</div>
-                <div class="fs-6">Owner Reports: {{ this_week_owner_reports_count }}</div>
-                <div class="fs-6">Employee Reports: {{ this_week_employee_reports_count }}</div>
-            </div>
-        </div>
-    </div>
-    <!--
     <div class="col-md-3">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">Last Week</div>
+            <div class="card-header bg-success text-white">This Week</div>
             <div class="card-body">
-                <div class="fs-5 fw-bold text-primary">All Reports: {{ last_week_number_reports_count }}</div>
-                <div class="fs-6 text-primary">Fovs: {{ last_week_number_fov_counts }}</div>
-                <div class="fs-6 text-primary">Owner Reports: {{ last_week_owner_reports_count }}</div>
-                <div class="fs-6 text-primary">Employee Reports: {{ last_week_employee_reports_count }}</div>
+                <div class="fs-5 fw-bold text-success">All Reports: {{ this_week_number_reports_count }}</div>
+                <div class="fs-6 text-success">Fovs: {{ this_week_number_fov_counts }}</div>
+                <div class="fs-6 text-success">Owner Reports: {{ this_week_owner_reports_count }}</div>
+                <div class="fs-6 text-success">Employee Reports: {{ this_week_employee_reports_count }}</div>
             </div>
         </div>
     </div>
-    -->
-</div>
-<div class="col-md-3">
-    <div class="card shadow-sm">
-        <div class="card-header bg-success text-white">This Month</div>
-        <div class="card-body">
-            <div class="fs-5 fw-bold text-success">All Reports: {{ this_month_number_reports_count }}</div>
-            <div class="fs-6 text-success">Fovs: {{ this_month_number_fov_counts }}</div>
-            <div class="fs-6 text-success">Owner Reports: {{ this_month_owner_reports_count }}</div>
-            <div class="fs-6 text-success">Employee Reports: {{ this_month_employee_reports_count }}</div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">This Month</div>
+            <div class="card-body">
+                <div class="fs-5 fw-bold text-warning">All Reports: {{ this_month_number_reports_count }}</div>
+                <div class="fs-6 text-warning">Fovs: {{ this_month_number_fov_counts }}</div>
+                <div class="fs-6 text-warning">Owner Reports: {{ this_month_owner_reports_count }}</div>
+                <div class="fs-6 text-warning">Employee Reports: {{ this_month_employee_reports_count }}</div>
+            </div>
         </div>
     </div>
-</div>
-<div class="col-md-3">
-    <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">Last Month</div>
-        <div class="card-body">
-            <div class="fs-5 fw-bold text-info">All Reports: {{ last_month_number_reports_count }}</div>
-            <div class="fs-6 text-info">Fovs: {{ last_month_number_fov_counts }}</div>
-            <div class="fs-6 text-info">Owner Reports: {{ last_month_owner_reports_count }}</div>
-            <div class="fs-6 text-info">Employee Reports: {{ last_month_employee_reports_count }}</div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">Last Month</div>
+            <div class="card-body">
+                <div class="fs-5 fw-bold text-info">All Reports: {{ last_month_number_reports_count }}</div>
+                <div class="fs-6 text-info">Fovs: {{ last_month_number_fov_counts }}</div>
+                <div class="fs-6 text-info">Owner Reports: {{ last_month_owner_reports_count }}</div>
+                <div class="fs-6 text-info">Employee Reports: {{ last_month_employee_reports_count }}</div>
+            </div>
         </div>
     </div>
 </div>
