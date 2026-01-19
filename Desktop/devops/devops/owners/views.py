@@ -37,8 +37,13 @@ def home(request):
     
     current_date = date.today()
     current_year = current_date.year
-    this_week = current_date.isocalendar()[1]
-    last_week = (current_date - timedelta(days=7)).isocalendar()[1]
+    
+    # Calculate week boundaries using Monday as start of week
+    this_week_start = current_date - timedelta(days=current_date.weekday())
+    this_week_end = this_week_start + timedelta(days=6)
+    last_week_start = this_week_start - timedelta(days=7)
+    last_week_end = this_week_start - timedelta(days=1)
+    
     this_month = current_date.month
     
     # Calculate last month (handles year boundary)
@@ -51,8 +56,8 @@ def home(request):
 
     # Filter reports by time periods
     today_reports = reports_qs.filter(created_at__date=current_date)
-    this_week_reports = reports_qs.filter(created_at__week=this_week, created_at__year=current_year)
-    last_week_reports = reports_qs.filter(created_at__week=last_week, created_at__year=current_year)
+    this_week_reports = reports_qs.filter(created_at__date__gte=this_week_start, created_at__date__lte=this_week_end)
+    last_week_reports = reports_qs.filter(created_at__date__gte=last_week_start, created_at__date__lte=last_week_end)
     this_month_reports = reports_qs.filter(created_at__month=this_month, created_at__year=current_year)
     last_month_reports = reports_qs.filter(created_at__month=last_month, created_at__year=last_month_year)
 
