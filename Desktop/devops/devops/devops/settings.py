@@ -93,16 +93,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Environment-specific settings
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-g0*j14c7*l++z+x2z2%p()+w+#(7w$p-mj=*dnamylj#9=@q=2')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-# Database configuration - SIMPLE AND BULLETPROOF
+# Database configuration
 import urllib.parse as urlparse
-
-print("=== DATABASE CONFIGURATION START ===")
-print(f"BASE_DIR: {BASE_DIR}")
-print(f"PORT env var: {os.environ.get('PORT', 'Not set')}")  
-print(f"DATABASE_URL env var: {os.environ.get('DATABASE_URL', 'Not set')}")
 
 # ALWAYS start with a working SQLite configuration
 DATABASES = {
@@ -112,12 +107,9 @@ DATABASES = {
     }
 }
 
-print(f"Default SQLite config set: {DATABASES}")
-
 # Try to override with PostgreSQL if we have DATABASE_URL
 database_url = os.environ.get('DATABASE_URL')
 if database_url and 'postgresql' in database_url:
-    print(f"Found PostgreSQL DATABASE_URL, attempting to parse...")
     try:
         import urllib.parse
         url = urllib.parse.urlparse(database_url)
@@ -138,20 +130,9 @@ if database_url and 'postgresql' in database_url:
                     'CONN_HEALTH_CHECKS': True,
                 }
             }
-            print(f"✅ PostgreSQL configured successfully")
-            print(f"   HOST: {url.hostname}")
-            print(f"   DB: {url.path[1:] if url.path else 'railway'}")
-        else:
-            print(f"❌ PostgreSQL URL incomplete, keeping SQLite")
     except Exception as e:
-        print(f"❌ Error parsing PostgreSQL URL: {e}")
-        print("Keeping SQLite configuration")
-
-# Final validation
-print(f"🎯 FINAL ENGINE: {DATABASES['default']['ENGINE']}")
-print(f"🎯 FINAL NAME: {DATABASES['default']['NAME']}")  
-print(f"🎯 DATABASES structure: {list(DATABASES.keys())}")
-print("=== DATABASE CONFIGURATION COMPLETE ===")
+        # Keep SQLite on error
+        pass
 
 # Logging configuration for Railway
 LOGGING = {

@@ -18,7 +18,8 @@ and analysis of historical climate data from the National Oceanic and Atmospheri
 Explore global temperature trends and greenhouse gas emissions data.
 """)
 
-API_TOKEN = "nXqknZjknkBdOOmxuuVDSQyZbxeTnMIN"
+import os
+API_TOKEN = os.environ.get('NOAA_API_TOKEN', '')  # Load from environment variable
 BASE_URL = "https://www.ncdc.noaa.gov/cdo-web/api/v2/data"
 headers = {"token": API_TOKEN}
 
