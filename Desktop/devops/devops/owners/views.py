@@ -36,7 +36,6 @@ def home(request):
     ).distinct().order_by('-created_at')
     
     current_date = date.today()
-    current_year = current_date.year
     
     # Calculate week boundaries using Monday as start of week
     this_week_start = current_date - timedelta(days=current_date.weekday())
@@ -49,16 +48,16 @@ def home(request):
     # Calculate last month (handles year boundary)
     if this_month == 1:
         last_month = 12
-        last_month_year = current_year - 1
+        last_month_year = date.today().year - 1
     else:
         last_month = this_month - 1
-        last_month_year = current_year
+        last_month_year = date.today().year
 
     # Filter reports by time periods
     today_reports = reports_qs.filter(created_at__date=current_date)
     this_week_reports = reports_qs.filter(created_at__date__gte=this_week_start, created_at__date__lte=this_week_end)
     last_week_reports = reports_qs.filter(created_at__date__gte=last_week_start, created_at__date__lte=last_week_end)
-    this_month_reports = reports_qs.filter(created_at__month=this_month, created_at__year=current_year)
+    this_month_reports = reports_qs.filter(created_at__month=this_month, created_at__year=date.today().year)
     last_month_reports = reports_qs.filter(created_at__month=last_month, created_at__year=last_month_year)
 
     # Calculate counts for each period

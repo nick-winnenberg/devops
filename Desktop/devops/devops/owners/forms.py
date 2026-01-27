@@ -93,17 +93,6 @@ class EmployeeForm(forms.ModelForm):
 class ReportForm(forms.ModelForm):
     """Form for creating communication reports with dynamic office filtering."""
     
-    additional_parties = forms.CharField(
-        max_length=500,
-        required=False,
-        help_text="Note any additional owners, partners, or parties involved in this communication",
-        widget=forms.TextInput(attrs={
-            'placeholder': 'e.g., John Smith (Partner), Mary Johnson (Co-owner)',
-            'class': 'form-control'
-        }),
-        label="Additional Parties Involved"
-    )
-    
     # Date field for when the call/communication actually happened
     call_date = forms.DateField(
         required=False,
@@ -118,8 +107,7 @@ class ReportForm(forms.ModelForm):
     
     class Meta:
         model = Report
-        # include office, additional_parties, and call_date fields
-        fields = ['call_date', 'subject', 'transcript', 'content', 'vibe', 'calltype', 'office', 'additional_parties']
+        fields = ['call_date', 'subject', 'transcript', 'content', 'vibe', 'calltype', 'office']
         widgets = {
             'created_at': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
@@ -128,22 +116,16 @@ class ReportForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        # accept an optional `owner` kwarg to limit office choices
         owner = kwargs.pop('owner', None)
         super().__init__(*args, **kwargs)
         
-        # office is optional on the model, so don't require it on the form
         self.fields['office'].required = False
         
         if owner is not None:
-            # Filter offices and enhance labels to show owner relationship
             offices = Office.objects.filter(owner=owner)
             self.fields['office'].queryset = offices
-            
-            # Enhance office field label to show current owner context
             self.fields['office'].label = f"Select Office (Owner: {owner.name})"
             
-            # Add helpful text about office selection
             if offices.count() > 1:
                 self.fields['office'].help_text = f"Choose which of {owner.name}'s offices this communication relates to, or leave blank for general owner communication."
             elif offices.count() == 1:
@@ -151,27 +133,17 @@ class ReportForm(forms.ModelForm):
             else:
                 self.fields['office'].help_text = f"No offices found for {owner.name}. Create an office first if needed."
         else:
-            # default to empty queryset to avoid exposing unrelated offices
             self.fields['office'].queryset = Office.objects.none()
             self.fields['office'].help_text = "Office selection will be available when creating reports from owner context."
     
     def save(self, commit=True):
-        """Save report with call date and additional parties appended to content."""
+        """Save report with call date prepended to content."""
         report = super().save(commit=False)
         
-        # Add call date information to content if provided
         call_date = self.cleaned_data.get('call_date')
         if call_date:
-            # Add call date at the beginning of content
             date_header = f"CALL DATE: {call_date.strftime('%B %d, %Y')}\n" + "="*40 + "\n\n"
             report.content = date_header + report.content
-        
-        # Append additional parties information to content if provided
-        additional = self.cleaned_data.get('additional_parties')
-        if additional and additional.strip():
-            # Add a clear separator and additional parties info
-            separator = "\n\n" + "="*50 + "\nADDITIONAL PARTIES INVOLVED:\n" + "="*50 + "\n"
-            report.content += separator + additional.strip()
             
         if commit:
             report.save()
