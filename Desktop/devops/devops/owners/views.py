@@ -73,11 +73,19 @@ def home(request):
     # Calculate counts for each period
     def get_report_stats(period_reports):
         """Helper to calculate report statistics for a time period."""
+        owner_filter = (
+            models.Q(owner__in=owners) |
+            models.Q(primary_owner__in=owners) |
+            models.Q(additional_owners__in=owners) |
+            models.Q(office__in=offices)
+        )
+
         return {
             'total': period_reports.count(),
             'fovs': period_reports.filter(calltype='fov').count(),
-            'owner': period_reports.filter(owner__in=owners).count(),
-            'employee': period_reports.filter(employee__office__in=offices).count(),
+            # Owner reports exclude those tied to employees to avoid double counting
+            'owner': period_reports.filter(owner_filter).exclude(employee__isnull=False).distinct().count(),
+            'employee': period_reports.filter(employee__office__in=offices).distinct().count(),
         }
 
     today = get_report_stats(today_reports)
