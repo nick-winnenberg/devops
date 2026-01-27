@@ -31,8 +31,16 @@ def home(request):
     offices = Office.objects.filter(
         models.Q(owners__in=owners) | models.Q(primary_owner__in=owners) | models.Q(owner__in=owners)
     ).distinct()
+    
+    # Get all employees that work in user's offices
+    employees = Employee.objects.filter(office__in=offices).distinct()
+    
+    # Filter reports: owner reports OR office reports OR employee reports
     reports_qs = Report.objects.filter(
-        models.Q(owner__in=owners) | models.Q(office__in=offices)
+        models.Q(owner__in=owners) | 
+        models.Q(primary_owner__in=owners) |
+        models.Q(office__in=offices) |
+        models.Q(employee__in=employees)
     ).distinct().order_by('-created_at')
     
     current_date = date.today()
