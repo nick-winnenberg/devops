@@ -122,7 +122,12 @@ class ReportForm(forms.ModelForm):
         self.fields['office'].required = False
         
         if owner is not None:
-            offices = Office.objects.filter(owner=owner)
+            # Filter offices where this owner is in the owners ManyToMany relationship
+            offices = Office.objects.filter(
+                models.Q(owners=owner) | 
+                models.Q(primary_owner=owner) |
+                models.Q(owner=owner)  # Include deprecated field for migration compatibility
+            ).distinct()
             self.fields['office'].queryset = offices
             self.fields['office'].label = f"Select Office (Owner: {owner.name})"
             
