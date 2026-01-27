@@ -117,6 +117,7 @@ class ReportForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         owner = kwargs.pop('owner', None)
+        office = kwargs.pop('office', None)
         super().__init__(*args, **kwargs)
         
         self.fields['office'].required = False
@@ -135,11 +136,18 @@ class ReportForm(forms.ModelForm):
                 self.fields['office'].help_text = f"Choose which of {owner.name}'s offices this communication relates to, or leave blank for general owner communication."
             elif offices.count() == 1:
                 self.fields['office'].help_text = f"Optional: Select {offices.first().name} if this communication is office-specific."
+                self.fields['office'].initial = offices.first()
             else:
                 self.fields['office'].help_text = f"No offices found for {owner.name}. Create an office first if needed."
+        elif office is not None:
+            # Employee flow: expose the office selector with this employee's office preselected
+            self.fields['office'].queryset = Office.objects.filter(id=office.id)
+            self.fields['office'].initial = office
+            self.fields['office'].label = f"Select Office (Employee: {getattr(office, 'name', 'Office')})"
+            self.fields['office'].help_text = "Confirm or change the office for this employee communication."
         else:
             self.fields['office'].queryset = Office.objects.none()
-            self.fields['office'].help_text = "Office selection will be available when creating reports from owner context."
+            self.fields['office'].help_text = "Office selection will be available when creating reports from owner or employee context."
     
     def save(self, commit=True):
         """Save report with call date prepended to content."""

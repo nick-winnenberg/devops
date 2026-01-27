@@ -448,12 +448,18 @@ def log_call_from_employee(request, employee_id):
     employee = get_object_or_404(Employee, pk=employee_id)
     
     if request.method == "POST":
-        form = ReportForm(request.POST)
+        form = ReportForm(request.POST, office=employee.office)
         if form.is_valid():
             report = form.save(commit=False)
             report.employee = employee
-            report.owner = employee.owner
-            report.office = employee.office
+            report.office = form.cleaned_data.get('office') or employee.office
+            # Set owner based on office relationships (primary then legacy owner)
+            if report.office and report.office.primary_owner:
+                report.owner = report.office.primary_owner
+            elif report.office and report.office.owner:
+                report.owner = report.office.owner
+            else:
+                report.owner = employee.owner
             report.author = request.user
             report.save()
             
@@ -467,7 +473,7 @@ def log_call_from_employee(request, employee_id):
             
             return redirect(reverse('office_dashboard', args=[employee.office.id]))
     else:
-        form = ReportForm()
+        form = ReportForm(office=employee.office)
     
     return render(request, "owners/form_create.html", {"form": form, "employee": employee})
 
