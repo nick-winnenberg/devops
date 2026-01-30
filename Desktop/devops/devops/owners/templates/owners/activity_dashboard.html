@@ -71,6 +71,44 @@
 </div>
 
 <div class="card mb-4">
+    <div class="card-header fw-bold">Last 3 Contacts</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Owner</th>
+                        <th>Office</th>
+                        <th>Employee</th>
+                        <th>Call Type</th>
+                        <th>Subject</th>
+                        <th>Report</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in last_three_contacts %}
+                    <tr>
+                        <td>{{ report.created_at }}</td>
+                        <td>{{ report.get_primary_owner_name }}</td>
+                        <td>{% if report.office %}{{ report.office.name }}{% else %}-{% endif %}</td>
+                        <td>{% if report.employee %}{{ report.employee.name }}{% else %}-{% endif %}</td>
+                        <td>{{ report.calltype|title }}</td>
+                        <td>{% if report.subject %}{{ report.subject }}{% else %}-{% endif %}</td>
+                        <td><a class="btn btn-sm btn-secondary" href="{% url 'report_dashboard' report.id %}">View Report</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No contacts found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
     <div class="card-header fw-bold">FOV Reports</div>
     <div class="card-body">
         <div class="d-flex flex-column">

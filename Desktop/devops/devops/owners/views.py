@@ -604,6 +604,7 @@ def activity_dashboard(request):
             totals_by_calltype[ct['code']] += matrix.get(oid, {}).get(ct['code'], 0)
 
     fov_reports = reports.filter(calltype='fov')
+    last_three_contacts = reports.order_by('-created_at')[:3]
 
     return render(request, "owners/activity_dashboard.html", {
         "reports": reports,
@@ -616,5 +617,6 @@ def activity_dashboard(request):
         "totals_by_owner": totals_by_owner,
         "grand_total": grand_total,
         "fov_reports": fov_reports,
+        "last_three_contacts": last_three_contacts,
     })
 
