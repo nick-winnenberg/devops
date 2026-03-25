@@ -11,6 +11,8 @@ from django.db.models import Count, Avg
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods, require_POST
 from datetime import date, timedelta
 
 from .forms import OwnerForm, OfficeForm, EmployeeForm, ReportForm
@@ -21,6 +23,7 @@ def index(request):
     """Health check endpoint."""
     return HttpResponse("Hello, world. Welcome!")
 
+@login_required
 def home(request):
     """Main dashboard showing activity statistics and entity lists."""
     if not request.user.is_authenticated:
@@ -125,6 +128,7 @@ def home(request):
         "last_month_employee_reports_count": last_month_stats['employee'],
     })
 
+@login_required
 def owner_create(request):
     """Create new owner with optional office associations."""
     if request.method == "POST":
@@ -151,6 +155,7 @@ def owner_create(request):
     
     return render(request, "owners/create.html", {"form": form})
 
+@login_required
 def owner_create_from_office(request, office_id):
     """Create new owner and associate with specified office."""
     office = get_object_or_404(Office, pk=office_id)
@@ -193,6 +198,7 @@ def owner_create_from_office(request, office_id):
         "form_type": "owner_from_office"
     })
 
+@login_required
 def owner_edit(request, owner_id):
     """Edit owner information and office associations."""
     owner = get_object_or_404(Owner, pk=owner_id)
@@ -237,22 +243,45 @@ def owner_edit(request, owner_id):
         "page_title": f"Edit {owner.name}"
     })
 
+@login_required
+@require_POST
 def owner_delete(request, owner_id):
     owner = get_object_or_404(Owner, pk=owner_id)
-    if request.method == "POST":
-        owner.delete()
+    # Security: verify ownership
+    if owner.user != request.user:
         return redirect(reverse('home'))
-    return render(request, "owners/delete.html", {"object": owner, "type": "owner"})
+    owner.delete()
+    return redirect(reverse('home'))
+    owner.delete()
+    return redirect(reverse('home'))
 
+@login_required
+@require_POST
 def office_delete(request, office_id):
     office = get_object_or_404(Office, pk=office_id)
-    if request.method == "POST":
-        office.delete()
+    # Security: verify user owns this office
+    user_owners = Owner.objects.filter(user=request.user)
+    if not Office.objects.filter(
+        models.Q(id=office_id) & (
+            models.Q(owners__in=user_owners) | 
+            models.Q(primary_owner__in=user_owners) | 
+            models.Q(owner__in=user_owners)
+        )
+    ).exists():
         return redirect(reverse('home'))
-    return render(request, "owners/delete.html", {"object": office, "type": "office"})
+    office.delete()
+    return redirect(reverse('home'))
+    office.delete()
+    return redirect(reverse('home'))
 
+@login_required
 def owner_dashboard(request, owner_id):
     owner = get_object_or_404(Owner, pk=owner_id)
+    
+    # Security: verify ownership
+    if owner.user != request.user:
+        return redirect(reverse('home'))
+    
     # Updated to use multi-owner relationships - show offices where this owner is involved
     offices = Office.objects.filter(
         models.Q(owners=owner) | models.Q(primary_owner=owner) | models.Q(owner=owner)
@@ -272,6 +301,7 @@ def owner_dashboard(request, owner_id):
         "fovs": fovs,
     })
 
+@login_required
 def office_create(request, owner_id):
     owner = get_object_or_404(Owner, pk=owner_id)
     if request.method == "POST":
@@ -289,6 +319,7 @@ def office_create(request, owner_id):
         form = OfficeForm()
     return render(request, "owners/form_create.html", {"form": form, "owner": owner})
 
+@login_required
 def office_edit(request, office_id):
     """Edit office information."""
     office = get_object_or_404(Office, pk=office_id)
@@ -321,6 +352,7 @@ def office_edit(request, office_id):
         "page_title": f"Edit {office.name}"
     })
 
+@login_required
 def office_manage_owners(request, office_id):
     """Admin function to manage office owner associations."""
     office = get_object_or_404(Office, pk=office_id)
@@ -362,6 +394,7 @@ def office_manage_owners(request, office_id):
         "page_title": f"Manage Owners - {office.name}"
     })
 
+@login_required
 def office_dashboard(request, office_id):
     """Display dashboard for a specific office."""
     office = get_object_or_404(Office, pk=office_id)
@@ -389,6 +422,7 @@ def office_dashboard(request, office_id):
         "fovs": fovs,
     })
 
+@login_required
 def employee_create(request, office_id):
     """Create a new employee for an office."""
     office = get_object_or_404(Office, pk=office_id)
@@ -406,6 +440,7 @@ def employee_create(request, office_id):
     
     return render(request, "owners/form_create.html", {"form": form, "office": office, "employee": True})
 
+@login_required
 def employee_edit(request, employee_id):
     """Edit employee information."""
     employee = get_object_or_404(Employee, pk=employee_id)
@@ -436,13 +471,28 @@ def employee_edit(request, employee_id):
         "page_title": f"Edit {employee.name}"
     })
 
+@login_required
+@require_POST
 def employee_delete(request, employee_id):
     """Delete an employee."""
     employee = get_object_or_404(Employee, pk=employee_id)
     office_id = employee.office.id
+    
+    # Security: verify user owns the office this employee belongs to
+    user_owners = Owner.objects.filter(user=request.user)
+    if not Office.objects.filter(
+        models.Q(id=office_id) & (
+            models.Q(owners__in=user_owners) | 
+            models.Q(primary_owner__in=user_owners) | 
+            models.Q(owner__in=user_owners)
+        )
+    ).exists():
+        return redirect(reverse('home'))
+    
     employee.delete()
     return redirect(reverse('office_dashboard', args=[office_id]))
 
+@login_required
 def log_call_from_employee(request, employee_id):
     """Log a call report from employee page."""
     employee = get_object_or_404(Employee, pk=employee_id)
@@ -477,6 +527,7 @@ def log_call_from_employee(request, employee_id):
     
     return render(request, "owners/form_create.html", {"form": form, "employee": employee})
 
+@login_required
 def log_call_from_office(request, office_id):
     """Log a call report from office page."""
     office = get_object_or_404(Office, pk=office_id)
@@ -505,6 +556,7 @@ def log_call_from_office(request, office_id):
     return render(request, "owners/form_create.html", {"form": form, "office": office})
 
 
+@login_required
 def log_call_from_owner(request, owner_id):
     """Log a call report from owner page."""
     owner = get_object_or_404(Owner, pk=owner_id)
@@ -544,11 +596,28 @@ def log_call_from_owner(request, owner_id):
         "form_type": "owner_report"
     })
 
+@login_required
 def report_dashboard(request, report_id):
     """Display individual report details."""
     report = get_object_or_404(Report, pk=report_id)
+    
+    # Security: verify user authored this report or owns the related owner
+    if report.author != request.user:
+        # Check if user owns any of the related owners
+        user_owners = Owner.objects.filter(user=request.user)
+        report_owners = []
+        if report.primary_owner:
+            report_owners.append(report.primary_owner)
+        if report.owner:
+            report_owners.append(report.owner)
+        report_owners.extend(report.additional_owners.all())
+        
+        if not any(owner in user_owners for owner in report_owners):
+            return redirect(reverse('home'))
+    
     return render(request, "owners/report_dashboard.html", {"report": report})
 
+@login_required
 def activity_dashboard(request):
     """Activity reporting dashboard with date range filtering and owner vs calltype matrix."""
     user = request.user

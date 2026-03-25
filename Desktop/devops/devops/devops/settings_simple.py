@@ -34,21 +34,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-CHANGE-THIS-IN-PRODUCTION')
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-# Allowed hosts
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "devops-production-f6d1.up.railway.app",   # your Railway URL
-    # "your.custom.domain",                    # add if you have one
-]
+# Allowed hosts - use environment variable with sensible defaults
+ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,*.up.railway.app')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',') if host.strip()]
 
 # Django 4.0+ requires scheme in CSRF_TRUSTED_ORIGINS
-CSRF_TRUSTED_ORIGINS = [
-    "https://devops-production-f6d1.up.railway.app",
-    # "https://your.custom.domain",
-    # Optionally, if you redeploy often and the subdomain changes:
-    "https://*.up.railway.app",               # Django 4.1+ supports wildcards
-]
+CSRF_TRUSTED_ORIGINS_ENV = os.environ.get(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://*.up.railway.app'
+)
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS_ENV.split(',') if origin.strip()]
 
 # Application definition
 INSTALLED_APPS = [
@@ -160,5 +155,30 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# Production security settings
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_HTTPONLY = True
+    X_FRAME_OPTIONS = 'DENY'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Authentication settings
+LOGIN_REDIRECT_URL = 'home'
+LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'
+
+# Session security
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 print("✅ Settings loaded successfully")
