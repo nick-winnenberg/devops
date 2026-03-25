@@ -35,13 +35,16 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-CHANGE-THIS-IN-PRODUC
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 # Allowed hosts - use environment variable with sensible defaults
-ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,*.up.railway.app')
+ALLOWED_HOSTS_ENV = os.environ.get(
+    'ALLOWED_HOSTS', 
+    'localhost,127.0.0.1,devops-production-f6d1.up.railway.app,*.up.railway.app'
+)
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',') if host.strip()]
 
 # Django 4.0+ requires scheme in CSRF_TRUSTED_ORIGINS
 CSRF_TRUSTED_ORIGINS_ENV = os.environ.get(
     'CSRF_TRUSTED_ORIGINS',
-    'https://*.up.railway.app'
+    'https://devops-production-f6d1.up.railway.app,https://*.up.railway.app'
 )
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS_ENV.split(',') if origin.strip()]
 
