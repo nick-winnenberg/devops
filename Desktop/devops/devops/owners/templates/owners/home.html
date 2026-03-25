@@ -82,7 +82,7 @@
                         {% for owner in office.owners.all %}
                         <tr>
                             <td><strong>{{ owner.name }}</strong></td>
-                            <td><span class="badge rounded-pill bg-primary"><i class="fas fa-user-tie me-1"></i>Owner</span></td>
+                            <td><span class="badge rounded-pill bg-dark text-white"><i class="fas fa-user-tie me-1"></i>Owner</span></td>
                             <td>
                                 <a href="{% url 'log_call_from_owner' owner.id %}" class="btn btn-success btn-sm" title="Quick log call">
                                     <i class="fas fa-phone me-1"></i>Log Call
@@ -93,7 +93,7 @@
                         {% for employee in office.employees.all %}
                         <tr>
                             <td><strong>{{ employee.name }}</strong></td>
-                            <td><span class="badge rounded-pill bg-secondary"><i class="fas fa-user me-1"></i>Employee</span></td>
+                            <td><span class="badge rounded-pill bg-dark text-white"><i class="fas fa-user me-1"></i>Employee</span></td>
                             <td>
                                 <a href="{% url 'log_call_from_employee' employee.id %}" class="btn btn-success btn-sm" title="Quick log call">
                                     <i class="fas fa-phone me-1"></i>Log Call
@@ -218,9 +218,9 @@
                                             <h6 class="mb-1 fw-bold text-dark">{{ contact.name }}</h6>
                                             <p class="mb-1 small">
                                                 {% if contact.type == 'owner' %}
-                                                <span class="badge rounded-pill bg-primary"><i class="fas fa-user-tie me-1"></i>Owner</span>
+                                                <span class="badge rounded-pill bg-dark text-white"><i class="fas fa-user-tie me-1"></i>Owner</span>
                                                 {% else %}
-                                                <span class="badge rounded-pill bg-secondary"><i class="fas fa-user me-1"></i>Employee</span>
+                                                <span class="badge rounded-pill bg-dark text-white"><i class="fas fa-user me-1"></i>Employee</span>
                                                 {% endif %}
                                             </p>
                                             {% if contact.type == 'employee' %}
