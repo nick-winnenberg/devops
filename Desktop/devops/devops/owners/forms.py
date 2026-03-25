@@ -112,8 +112,23 @@ class ReportForm(forms.ModelForm):
             'created_at': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
                 'class': 'form-control'
-            })
+            }),
+            'calltype': forms.Select(attrs={'class': 'form-control'}),
+            'vibe': forms.NumberInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'subject': forms.TextInput(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        owner = kwargs.pop('owner', None)
+        office = kwargs.pop('office', None)
+        super().__init__(*args, **kwargs)
+        
+        # Feature #3: Smart default to "phone" as most common call type
+        if not self.instance.pk:  # Only for new reports
+            self.fields['calltype'].initial = 'phone'
+        
+        self.fields['office'].required = False
 
     def __init__(self, *args, **kwargs):
         owner = kwargs.pop('owner', None)

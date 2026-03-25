@@ -97,9 +97,38 @@ def home(request):
     this_month_stats = get_report_stats(this_month_reports)
     last_month_stats = get_report_stats(last_month_reports)
 
+    # Get recent contacts for quick call logging (Feature #2)
+    recent_owners = owners.order_by('-last_contacted')[:10]
+    recent_employees = employees.order_by('-office__last_contacted')[:10]
+    
+    # Combine and get most recent 10 contacts total
+    recent_contacts = []
+    for owner in recent_owners:
+        recent_contacts.append({
+            'type': 'owner',
+            'id': owner.id,
+            'name': owner.name,
+            'last_contacted': owner.last_contacted,
+            'url': reverse('log_call_from_owner', args=[owner.id])
+        })
+    for employee in recent_employees:
+        recent_contacts.append({
+            'type': 'employee',
+            'id': employee.id,
+            'name': employee.name,
+            'office': employee.office.name,
+            'last_contacted': employee.office.last_contacted,
+            'url': reverse('log_call_from_employee', args=[employee.id])
+        })
+    
+    # Sort by last_contacted and take top 10
+    recent_contacts.sort(key=lambda x: x['last_contacted'] or date.min, reverse=True)
+    recent_contacts = recent_contacts[:10]
+
     return render(request, "owners/home.html", {
         "owners": owners,
         "offices": offices,
+        "recent_contacts": recent_contacts,
         "current_date": current_date,
         # Today stats
         "today_reports_count": today['total'],

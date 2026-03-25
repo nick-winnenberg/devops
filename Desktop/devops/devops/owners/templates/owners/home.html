@@ -10,6 +10,38 @@
     </div>
 </div>
 
+<!-- Feature #2: Recent Contacts Section -->
+{% if recent_contacts %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Quick Log - Recent Contacts</h5>
+                <small class="badge bg-light text-dark">Last 10 contacts</small>
+            </div>
+            <div class="card-body p-2">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for contact in recent_contacts %}
+                    <a href="{{ contact.url }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-phone me-1"></i>
+                        <strong>{{ contact.name }}</strong>
+                        {% if contact.type == 'employee' %}
+                            <small class="text-muted">({{ contact.office }})</small>
+                        {% endif %}
+                        {% if contact.last_contacted %}
+                            <small class="text-muted">- {{ contact.last_contacted|timesince }} ago</small>
+                        {% else %}
+                            <small class="text-muted">- Never contacted</small>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm">
@@ -82,10 +114,10 @@
                         {% for owner in office.owners.all %}
                         <tr>
                             <td>{{ owner.name }}</td>
-                            <td><span class="badge">Owner</span></td>
+                            <td><span class="badge bg-info">Owner</span></td>
                             <td>
-                                <a href="{% url 'log_call_from_owner' owner.id %}" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-file-alt me-1"></i>Report
+                                <a href="{% url 'log_call_from_owner' owner.id %}" class="btn btn-success btn-sm" title="Quick log call">
+                                    <i class="fas fa-phone me-1"></i>Log Call
                                 </a>
                             </td>
                         </tr>
@@ -93,10 +125,10 @@
                         {% for employee in office.employees.all %}
                         <tr>
                             <td>{{ employee.name }}</td>
-                            <td><span class="badge">Employee</span></td>
+                            <td><span class="badge bg-secondary">Employee</span></td>
                             <td>
-                                <a href="{% url 'log_call_from_employee' employee.id %}" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-file-alt me-1"></i>Report
+                                <a href="{% url 'log_call_from_employee' employee.id %}" class="btn btn-success btn-sm" title="Quick log call">
+                                    <i class="fas fa-phone me-1"></i>Log Call
                                 </a>
                             </td>
                         </tr>
@@ -184,6 +216,103 @@
     </div>
 </div>
 </div>
+
+<!-- Feature #1: Floating Quick Call Button -->
+<div class="position-fixed bottom-0 end-0 p-4" style="z-index: 1000;">
+    <button class="btn btn-success btn-lg rounded-circle shadow-lg" 
+            data-bs-toggle="modal" 
+            data-bs-target="#quickCallModal"
+            title="Quick Call Entry (Ctrl+K)"
+            style="width: 60px; height: 60px;">
+        <i class="fas fa-phone" style="font-size: 24px;"></i>
+    </button>
+</div>
+
+<!-- Quick Call Modal -->
+<div class="modal fade" id="quickCallModal" tabindex="-1" aria-labelledby="quickCallModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="quickCallModalLabel">
+                    <i class="fas fa-phone me-2"></i>Quick Call Entry
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3">Select Owner</h6>
+                        <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                            {% for owner in owners %}
+                            <a href="{% url 'log_call_from_owner' owner.id %}" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ owner.name }}</h6>
+                                    {% if owner.last_contacted %}
+                                        <small class="text-muted">{{ owner.last_contacted|timesince }} ago</small>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-building me-1"></i>
+                                    {% for office in owner.offices.all %}
+                                        {{ office.name }}{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        No offices
+                                    {% endfor %}
+                                </small>
+                            </a>
+                            {% empty %}
+                            <div class="list-group-item text-center text-muted">
+                                No owners found. <a href="{% url 'owner_create' %}">Create one</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3">Select Employee</h6>
+                        <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                            {% for office in offices %}
+                                {% for employee in office.employees.all %}
+                                <a href="{% url 'log_call_from_employee' employee.id %}" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ employee.name }}</h6>
+                                        <small class="badge bg-secondary">{{ employee.position }}</small>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-building me-1"></i>{{ office.name }}
+                                    </small>
+                                </a>
+                                {% endfor %}
+                            {% empty %}
+                            <div class="list-group-item text-center text-muted">
+                                No employees found. <a href="{% url 'home' %}">Add offices first</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Keyboard Shortcut Handler -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ctrl+K or Cmd+K to open quick call modal
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            var modal = new bootstrap.Modal(document.getElementById('quickCallModal'));
+            modal.show();
+        }
+    });
+});
+</script>
 
 
 
