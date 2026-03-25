@@ -10,38 +10,6 @@
     </div>
 </div>
 
-<!-- Feature #2: Recent Contacts Section -->
-{% if recent_contacts %}
-<div class="row mb-4">
-    <div class="col">
-        <div class="card shadow-sm border-primary">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Quick Log - Recent Contacts</h5>
-                <small class="badge bg-light text-dark">Last 10 contacts</small>
-            </div>
-            <div class="card-body p-2">
-                <div class="d-flex flex-wrap gap-2">
-                    {% for contact in recent_contacts %}
-                    <a href="{{ contact.url }}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-phone me-1"></i>
-                        <strong>{{ contact.name }}</strong>
-                        {% if contact.type == 'employee' %}
-                            <small class="text-muted">({{ contact.office }})</small>
-                        {% endif %}
-                        {% if contact.last_contacted %}
-                            <small class="text-muted">- {{ contact.last_contacted|timesince }} ago</small>
-                        {% else %}
-                            <small class="text-muted">- Never contacted</small>
-                        {% endif %}
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm">
@@ -113,8 +81,8 @@
                     <tbody>
                         {% for owner in office.owners.all %}
                         <tr>
-                            <td>{{ owner.name }}</td>
-                            <td><span class="badge bg-info">Owner</span></td>
+                            <td><strong>{{ owner.name }}</strong></td>
+                            <td><span class="badge rounded-pill bg-primary"><i class="fas fa-user-tie me-1"></i>Owner</span></td>
                             <td>
                                 <a href="{% url 'log_call_from_owner' owner.id %}" class="btn btn-success btn-sm" title="Quick log call">
                                     <i class="fas fa-phone me-1"></i>Log Call
@@ -124,8 +92,8 @@
                         {% endfor %}
                         {% for employee in office.employees.all %}
                         <tr>
-                            <td>{{ employee.name }}</td>
-                            <td><span class="badge bg-secondary">Employee</span></td>
+                            <td><strong>{{ employee.name }}</strong></td>
+                            <td><span class="badge rounded-pill bg-secondary"><i class="fas fa-user me-1"></i>Employee</span></td>
                             <td>
                                 <a href="{% url 'log_call_from_employee' employee.id %}" class="btn btn-success btn-sm" title="Quick log call">
                                     <i class="fas fa-phone me-1"></i>Log Call
@@ -215,6 +183,84 @@
         </div>
     </div>
 </div>
+
+<!-- Feature #2: Quick Log - Recent Contacts Section (Bottom Position) -->
+{% if recent_contacts %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card shadow-lg border-success">
+            <div class="card-header bg-success text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Log - Recent Contacts</h4>
+                    <span class="badge bg-light text-success">Last 10 Contacts</span>
+                </div>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    {% for contact in recent_contacts %}
+                    <div class="col-md-6 col-lg-4">
+                        <a href="{{ contact.url }}" class="text-decoration-none">
+                            <div class="card h-100 border-2 {% if contact.type == 'owner' %}border-primary{% else %}border-secondary{% endif %} hover-shadow">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0">
+                                            {% if contact.type == 'owner' %}
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-user-tie" style="font-size: 20px;"></i>
+                                            </div>
+                                            {% else %}
+                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-user" style="font-size: 20px;"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-1 fw-bold text-dark">{{ contact.name }}</h6>
+                                            <p class="mb-1 small">
+                                                {% if contact.type == 'owner' %}
+                                                <span class="badge rounded-pill bg-primary"><i class="fas fa-user-tie me-1"></i>Owner</span>
+                                                {% else %}
+                                                <span class="badge rounded-pill bg-secondary"><i class="fas fa-user me-1"></i>Employee</span>
+                                                {% endif %}
+                                            </p>
+                                            {% if contact.type == 'employee' %}
+                                            <p class="mb-1 small text-muted">
+                                                <i class="fas fa-building me-1"></i>{{ contact.office }}
+                                            </p>
+                                            {% endif %}
+                                            <p class="mb-0 small">
+                                                {% if contact.last_contacted %}
+                                                <span class="text-muted"><i class="fas fa-clock me-1"></i>{{ contact.last_contacted|timesince }} ago</span>
+                                                {% else %}
+                                                <span class="text-warning"><i class="fas fa-exclamation-circle me-1"></i>Never contacted</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button class="btn btn-success btn-sm w-100">
+                                            <i class="fas fa-phone me-1"></i>Log Call Now
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-2px);
+    transition: all 0.2s ease-in-out;
+}
+</style>
+{% endif %}
 </div>
 
 <!-- Feature #1: Floating Quick Call Button -->
